@@ -128,7 +128,7 @@ function SignUp() {
           <Button
             type="submit"
             disabled={!isFormValid}
-            className="w-full h-16 text-xl font-black shadow-[0_20px_40px_-12px_rgba(184,198,219,0.5)] bg-[#B8C6DB] text-white hover:bg-[#A8B6CB] rounded-3xl transition-all hover:-translate-y-1"
+            className="w-full h-16 text-xl font-black shadow-[0_20px_40px_-12px_rgba(184,198,219,0.5)] bg-primary text-white hover:bg-primary-hover rounded-3xl transition-all hover:-translate-y-1"
           >
             Criar Aura
           </Button>

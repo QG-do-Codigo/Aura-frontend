@@ -5,6 +5,7 @@ import { AuthLayout } from '../../components/auth/auth-layout'
 import auraLogo from '../../assets/logoaura.png'
 import { Button } from '../../components/UI/button'
 import { Link } from 'react-router-dom'
+import { ForgotPasswordDialog } from '../../components/auth/ForgotPasswordDialog'
 
 function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
@@ -61,6 +62,9 @@ function SignIn() {
         </div>
 
         <div className="space-y-5">
+          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+            EMAIL
+          </label>
           <Input
             value={email}
             onChange={e => {
@@ -77,6 +81,9 @@ function SignIn() {
             <p className="text-xs text-red-500">{errors.email}</p>
           )}
 
+          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+            SENHA
+          </label>
           <div className="relative">
             <Input
               value={password}
@@ -104,9 +111,7 @@ function SignIn() {
           )}
 
           <div className="text-right">
-            <button className="text-xs font-black text-indigo-400 hover:text-indigo-600 uppercase tracking-widest">
-              Esqueceu a senha?
-            </button>
+            <ForgotPasswordDialog />
           </div>
 
           <Button

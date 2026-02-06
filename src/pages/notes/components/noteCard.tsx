@@ -25,7 +25,6 @@ export function NoteCard({
       style={{ backgroundColor: color }}
       className="relative rounded-2xl p-6 shadow-sm overflow-hidden group"
     >
-      {/* AÇÕES */}
       <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={onEdit}

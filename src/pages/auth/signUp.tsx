@@ -11,6 +11,7 @@ function SignUp() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  const MAX_PASSWORD = 6
   const isFormValid =
     name.trim() !== '' && email.trim() !== '' && password.trim() !== ''
 
@@ -105,12 +106,19 @@ function SignUp() {
             <Input
               required
               value={password}
+              maxLength={MAX_PASSWORD}
               onChange={e => setPassword(e.target.value)}
               onBlur={e => validateField('password', e.target.value)}
               placeholder="Senha"
               type={showPassword ? 'text' : 'password'}
               className="h-14 rounded-[20px] border-slate-100 bg-slate-50/50 px-6"
             />
+            <div className="flex justify-end mt-1">
+              <span className="text-xs text-slate-400">
+                {password.length} / {MAX_PASSWORD}
+              </span>
+            </div>
+
             {errors.password && (
               <p className="ml-2 mt-1 text-xs text-red-500">
                 {errors.password}

@@ -28,7 +28,6 @@ function AppRoutes() {
           <Route path="sleep" element={<SleepPage />} />
           <Route path="ideas" element={<IdeasPage />} />
         </Route>
-        <Route path="/notes" element={<NotesPage />} />
       </Routes>
     </BrowserRouter>
   );

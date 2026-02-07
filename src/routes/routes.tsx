@@ -1,15 +1,16 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import SignIn from "../pages/auth/signIn";
-import SignUp from "../pages/auth/signUp";
 import { Dashboard } from "../pages/dashboard";
 import { DashboardLayout } from "../layouts/DashboardLayout";
 import { TasksPage } from "../pages/dashboard/Tasks";
-import { NotesPage } from "../pages/dashboard/Notes";
+// import { NotesPage } from "../pages/dashboard/Notes";
 import { ShoppingPage } from "../pages/dashboard/Shopping";
 import { IdeasPage } from "../pages/dashboard/Ideas";
 import { SleepPage } from "../pages/dashboard/SleepPage";
 import { FinancePage } from "../pages/dashboard/Finance";
 import { HealthPage } from "../pages/dashboard/Health";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SignIn from "../pages/auth/signIn";
+import SignUp from "../pages/auth/signUp";
+import { NotesPage } from "../pages/notes/components/notesPage";
 
 function AppRoutes() {
   return (
@@ -27,6 +28,7 @@ function AppRoutes() {
           <Route path="sleep" element={<SleepPage />} />
           <Route path="ideas" element={<IdeasPage />} />
         </Route>
+        <Route path="/notes" element={<NotesPage />} />
       </Routes>
     </BrowserRouter>
   );

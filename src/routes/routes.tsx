@@ -1,6 +1,5 @@
 import { Dashboard } from "../pages/dashboard";
 import { DashboardLayout } from "../layouts/DashboardLayout";
-import { TasksPage } from "../pages/dashboard/Tasks";
 // import { NotesPage } from "../pages/dashboard/Notes";
 import { ShoppingPage } from "../pages/dashboard/Shopping";
 import { IdeasPage } from "../pages/dashboard/Ideas";
@@ -11,6 +10,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignIn from "../pages/auth/signIn";
 import SignUp from "../pages/auth/signUp";
 import { NotesPage } from "../pages/notes/components/notesPage";
+import { TasksPage } from "../pages/Tasks/TaskPage";
 
 function AppRoutes() {
   return (

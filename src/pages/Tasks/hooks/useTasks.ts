@@ -61,7 +61,7 @@ export const useTasks = () => {
 
   const deleteTask = async (id: string) => {
     try {
-      await api.delete(`/tasks/${id}`, {
+      await api.delete(`/tasks/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,6 +73,21 @@ export const useTasks = () => {
     }
   };
 
+  const updateTask = async (task: Task) => {
+    try {
+      await api.patch(`/tasks/update/${task.id}`, task, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, ...task } : t))
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar tarefa:", error);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -81,6 +96,7 @@ export const useTasks = () => {
     tasks,
     createTask,
     toggleTask,
+    updateTask,
     deleteTask,
     fetchTasks,
   };

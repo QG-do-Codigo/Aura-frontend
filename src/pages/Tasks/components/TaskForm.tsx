@@ -1,10 +1,21 @@
 import { useState } from "react";
 import type { Task } from "../types/task.types";
 
-interface Props {
-  onSubmit: (data: Omit<Task, "id">) => void;
-  onClose: () => void;
-}
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "../../../components/UI/dialog";
+
+import { Button } from "../../../components/UI/button";
+import { Input } from "../../../components/UI/input";
+import { Textarea } from "../../../components/UI/textarea";
+import { Label } from "../../../components/UI/label";
+import { cn } from "../../../components/surface";
 
 const noteColors = [
   { name: "red", class: "bg-[var(--note-red)]" },
@@ -14,90 +25,146 @@ const noteColors = [
   { name: "purple", class: "bg-[var(--note-purple)]" },
 ];
 
-export const TaskForm = ({ onSubmit, onClose }: Props) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [priority, setPriority] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(noteColors[0].class);
+interface TaskFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: Omit<Task, "id"> | Task) => void;
+  initialData?: Task;
+  isEditing?: boolean;
+  onClose?: () => void;
+}
+
+export const TaskForm = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  initialData,
+  isEditing = false,
+}: TaskFormProps) => {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [description, setDescription] = useState(
+    initialData?.description || ""
+  );
+  const [category, setCategory] = useState(initialData?.category || "");
+  const [priority, setPriority] = useState(initialData?.priority || 1);
+  const [selectedColor, setSelectedColor] = useState(
+    initialData?.color || noteColors[0].class
+  );
 
   const handleSubmit = () => {
-    if (!title || !category) return;
+    if (!title.trim() || !category.trim()) return;
 
-    onSubmit({
-      title,
-      description,
-      category,
+    const data = {
+      title: title.trim(),
+      description: description.trim(),
+      category: category.trim(),
       priority,
       color: selectedColor,
-      completed: false,
-    });
+      completed: initialData?.completed ?? false,
+      ...(initialData?.id && { id: initialData.id }),
+    };
 
-    onClose();
+    onSubmit(data);
+    onOpenChange(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-xl w-[400px]">
-        <h2 className="text-xl font-bold mb-4">Nova Anotação</h2>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? "Editar Tarefa" : "Nova Tarefa"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditing
+              ? "Altere os detalhes da tarefa abaixo."
+              : "Preencha os campos para criar uma nova tarefa."}
+          </DialogDescription>
+        </DialogHeader>
 
-        <input
-          className="border p-2 w-full mb-3"
-          placeholder="Título"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-
-        <textarea
-          className="border p-2 w-full mb-3 h-24"
-          placeholder="Descrição"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-
-        <input
-          className="border p-2 w-full mb-3"
-          placeholder="Categoria"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        />
-
-        <input
-          type="number"
-          className="border p-2 w-full mb-4"
-          value={priority}
-          onChange={(e) => setPriority(Number(e.target.value))}
-        />
-
-        {/* seletor de cores */}
-        <div className="flex gap-3 mb-4">
-          {noteColors.map((color) => (
-            <div
-              key={color.name}
-              className={`${
-                color.class
-              } w-8 h-8 rounded-full cursor-pointer border-2 ${
-                selectedColor === color.class
-                  ? "border-black"
-                  : "border-transparent"
-              }`}
-              onClick={() => setSelectedColor(color.class)}
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Título</Label>
+            <Input
+              id="title"
+              placeholder="Título da tarefa"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              autoFocus
+              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
             />
-          ))}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              placeholder="Descrição (opcional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="category">Categoria</Label>
+            <Input
+              id="category"
+              placeholder="Categoria"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="priority">Prioridade (1-5)</Label>
+            <Input
+              id="priority"
+              type="number"
+              min={1}
+              max={5}
+              value={priority}
+              onChange={(e) => setPriority(Number(e.target.value))}
+              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Cor da nota</Label>
+            <div className="flex flex-wrap gap-3">
+              {noteColors.map((color) => (
+                <div
+                  key={color.name}
+                  className={cn(
+                    "w-10 h-10 rounded-full cursor-pointer border-2 transition-all",
+                    selectedColor === color.class
+                      ? "border-blue-600 scale-110 shadow-lg"
+                      : "border-transparent hover:scale-105",
+                    color.class
+                  )}
+                  onClick={() => setSelectedColor(color.class)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 rounded border">
-            Cancelar
-          </button>
-          <button
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancelar
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
             onClick={handleSubmit}
-            className="bg-black text-white px-4 py-2 rounded"
+            disabled={!title.trim() || !category.trim()}
           >
-            Criar nota
-          </button>
-        </div>
-      </div>
-    </div>
+            {isEditing ? "Salvar alterações" : "Criar tarefa"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };

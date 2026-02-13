@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTasks } from "./hooks/useTasks";
 import { TaskAreaGrid } from "./components/TaskAreaGrid";
-import { TaskItemModal } from "./components/TaskItemModal";
 import { TaskForm } from "./components/TaskForm";
 
 export interface Tasks {
@@ -10,46 +9,52 @@ export interface Tasks {
   category: string;
   completed: boolean;
   priority: number;
+  color?: string;
+  id: string;
 }
 
 export const TasksPage = () => {
-  const { tasks, createTask, toggleTask, deleteTask } = useTasks();
+  const { tasks, createTask, updateTask, toggleTask, deleteTask } = useTasks();
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [openForm, setOpenForm] = useState(false);
+  const [openNewTaskForm, setOpenNewTaskForm] = useState(false);
 
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ZGZmMTA5Yi1jNDZiLTRjN2YtYWQ0MC01NzYyZWU4NWNlN2UiLCJlbWFpbCI6InZpY3RvcmlhZGlhc2oyMkBnbWFpbC5jb20iLCJpYXQiOjE3NzA5MzM2MTAsImV4cCI6MTc3MDkzNzIxMCwiYXVkIjoidG9rZW4tYXVkaWVuY2UiLCJpc3MiOiJ0b2tlbi1pc3N1ZXIifQ.4T6zuhoosUspgfRl3mBt-jFP-2Th6Quu1gQO6iqdpe8";
-
+  const token = localStorage.getItem("token");
   useEffect(() => {
-    localStorage.setItem("token", token);
-  }, []);
-
-  const tasksByCategory = selectedCategory
-    ? tasks.filter((t) => t.category === selectedCategory)
-    : [];
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+  }, [token]);
 
   return (
-    <div className="p-6">
-      <button onClick={() => setOpenForm(true)}>Adicionar Área</button>
+    <div className="p-6 min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Minhas Tarefas</h1>
+          <button
+            onClick={() => setOpenNewTaskForm(true)}
+            className="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-sm"
+          >
+            + Nova Tarefa
+          </button>
+        </div>
 
-      <TaskAreaGrid
-        tasks={tasks}
-        onOpenCategory={(cat) => setSelectedCategory(cat)}
-      />
-
-      {selectedCategory && (
-        <TaskItemModal
-          category={selectedCategory}
-          tasks={tasksByCategory}
-          onClose={() => setSelectedCategory(null)}
-          onToggle={toggleTask}
-          onDelete={deleteTask}
+        <TaskAreaGrid
+          tasks={tasks}
+          onOpenCategory={(cat) => setSelectedCategory(cat)}
+          createTask={createTask}
+          updateTask={updateTask}
+          deleteTask={deleteTask}
+          toggleTask={toggleTask}
         />
-      )}
 
-      {openForm && (
-        <TaskForm onSubmit={createTask} onClose={() => setOpenForm(false)} />
-      )}
+        <TaskForm
+          open={openNewTaskForm}
+          onOpenChange={setOpenNewTaskForm}
+          onSubmit={createTask}
+          onClose={() => setOpenNewTaskForm(false)}
+        />
+      </div>
     </div>
   );
 };

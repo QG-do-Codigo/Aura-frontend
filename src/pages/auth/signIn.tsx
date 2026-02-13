@@ -4,14 +4,19 @@ import { Eye, EyeOff } from 'lucide-react'
 import { AuthLayout } from '../../components/auth/auth-layout'
 import auraLogo from '../../assets/logoaura.png'
 import { Button } from '../../components/UI/button'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ForgotPasswordDialog } from '../../components/auth/ForgotPasswordDialog'
+import { authService } from '../../services/auth/auth.service'
+import { ToastAlert } from '../../utils/toastAlert'
+import axios from 'axios'
 
 function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  let navigate = useNavigate()
 
   const [errors, setErrors] = useState<{
     email?: string
@@ -41,6 +46,39 @@ function SignIn() {
     })
   }
 
+  async function handleLogin(e: any) {
+    e.preventDefault();
+
+    try {
+      const data = await authService.signIn({ email, password });
+
+      if(data){
+        ToastAlert("Logado com sucesso!", "success")
+        // redirecionar se quiser
+        navigate("/dashboard");
+      }
+      
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+
+        if (status === 401) {
+          ToastAlert("Email ou senha incorretos", "info");
+          return;
+        }
+
+        if (status === 400) {
+          ToastAlert("Dados inválidos", "info");
+          return;
+        }
+      }
+
+      ToastAlert("Erro ao realizar o login", "error");
+
+    }
+  }
+
+
   return (
     <AuthLayout>
       <div className="space-y-6">
@@ -62,64 +100,67 @@ function SignIn() {
         </div>
 
         <div className="space-y-5">
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
-            EMAIL
-          </label>
-          <Input
-            value={email}
-            onChange={e => {
-              setEmail(e.target.value)
-              validateField('email', e.target.value)
-            }}
-            onBlur={e => validateField('email', e.target.value)}
-            placeholder="Email"
-            type="email"
-            className="h-14 rounded-[20px] border-slate-100 bg-slate-50/50 px-6"
-          />
-
-          {errors.email && (
-            <p className="text-xs text-red-500">{errors.email}</p>
-          )}
-
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
-            SENHA
-          </label>
-          <div className="relative">
+          <form onSubmit={handleLogin} className='space-y-5'>
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+              EMAIL
+            </label>
             <Input
-              value={password}
+              value={email}
               onChange={e => {
-                setPassword(e.target.value)
-                validateField('password', e.target.value)
+                setEmail(e.target.value)
+                validateField('email', e.target.value)
               }}
-              onBlur={e => validateField('password', e.target.value)}
-              placeholder="Senha"
-              type={showPassword ? 'text' : 'password'}
+              onBlur={e => validateField('email', e.target.value)}
+              placeholder="Email"
+              type="email"
               className="h-14 rounded-[20px] border-slate-100 bg-slate-50/50 px-6"
             />
 
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            {errors.email && (
+              <p className="text-xs text-red-500">{errors.email}</p>
+            )}
+
+            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+              SENHA
+            </label>
+            <div className="relative">
+              <Input
+                value={password}
+                onChange={e => {
+                  setPassword(e.target.value)
+                  validateField('password', e.target.value)
+                }}
+                onBlur={e => validateField('password', e.target.value)}
+                placeholder="Senha"
+                type={showPassword ? 'text' : 'password'}
+                className="h-14 rounded-[20px] border-slate-100 bg-slate-50/50 px-6"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </button>
+            </div>
+
+            {errors.password && (
+              <p className="text-xs text-red-500">{errors.password}</p>
+            )}
+
+            <div className="text-right">
+              <ForgotPasswordDialog />
+            </div>
+
+            <Button
+              disabled={!isFormValid}
+
+              className="w-full h-16 text-xl font-black shadow-[0_20px_40px_-12px_rgba(184,198,219,0.5)] bg-primary text-white hover:bg-primary-hover rounded-3xl transition-all hover:-translate-y-1"
             >
-              {showPassword ? <EyeOff /> : <Eye />}
-            </button>
-          </div>
-
-          {errors.password && (
-            <p className="text-xs text-red-500">{errors.password}</p>
-          )}
-
-          <div className="text-right">
-            <ForgotPasswordDialog />
-          </div>
-
-          <Button
-            disabled={!isFormValid}
-            className="w-full h-16 text-xl font-black shadow-[0_20px_40px_-12px_rgba(184,198,219,0.5)] bg-primary text-white hover:bg-primary-hover rounded-3xl transition-all hover:-translate-y-1"
-          >
-            Entrar na Aura
-          </Button>
+              Entrar na Aura
+            </Button>
+          </form>
         </div>
 
         <div className="relative flex items-center gap-4">

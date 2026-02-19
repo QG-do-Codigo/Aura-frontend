@@ -20,7 +20,6 @@ export function SidebarItem({
 }: SidebarItemProps) {
   return (
     <button onClick={onClick} className="relative w-full text-left">
-      {/*  ativo */}
       {isActive && (
         <motion.div
           layoutId="sidebar-active-bg"
@@ -29,7 +28,6 @@ export function SidebarItem({
         />
       )}
 
-      {/* pill lateral */}
       {isActive && (
         <motion.div
           layoutId="sidebar-active-indicator"
@@ -41,7 +39,7 @@ export function SidebarItem({
         className={cn(
           "relative z-10 flex items-center gap-3 px-5 py-3 rounded-full transition-colors cursor-pointer",
           isActive
-            ? cn(color, "font-medium") // aplica text-indigo-500, text-blue-500 etc.
+            ? cn(color, "font-medium")
             : "text-muted-foreground hover:text-primary"
         )}
       >

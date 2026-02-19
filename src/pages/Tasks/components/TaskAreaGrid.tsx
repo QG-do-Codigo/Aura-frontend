@@ -3,6 +3,7 @@ import type { Task } from "../types/task.types";
 import { groupTasksByCategory } from "../utils/groupTasksByCategory";
 import { TaskCategoryCard } from "./TaskCategoryCard";
 import { TaskForm } from "./TaskForm";
+import { CheckTaskModal } from "./Modal";
 
 interface Props {
   tasks: Task[];
@@ -46,8 +47,10 @@ export const TaskAreaGrid = ({
             category={category}
             tasks={categoryTasks}
             onClick={() => {
-              setSelectedCategory(category);
-              setModalMode("view");
+              const firstTask = categoryTasks[0];
+              if (!firstTask) return;
+
+              setTaskToEdit(firstTask);
             }}
             onEdit={(task) => {
               setTaskToEdit(task);
@@ -60,24 +63,18 @@ export const TaskAreaGrid = ({
           />
         ))}
       </div>
-
-      {/* Modal da Categoria – descomente quando quiser */}
-      {/* {selectedCategory && (
-        <TaskItemModal
-          category={selectedCategory}
-          tasks={tasksInCategory}
-          onClose={() => {
-            setSelectedCategory(null);
-            setModalMode("view");
+      {taskToEdit && (
+        <CheckTaskModal
+          task={taskToEdit}
+          onSave={(updatedTask: Task) => {
+            updateTask(updatedTask);
+            setTaskToEdit(null);
           }}
-          onToggle={toggleTask}
-          onDelete={deleteTask}
-          mode={modalMode}
-          onDeleteCategory={deleteCategory}
+          onOpenChange={(open) => !open && setTaskToEdit(null)}
+          open={!!taskToEdit}
         />
-      )} */}
+      )}
 
-      {/* Formulário de edição de tarefa */}
       {taskToEdit && openEditForm && (
         <TaskForm
           open={openEditForm}
@@ -99,7 +96,6 @@ export const TaskAreaGrid = ({
         />
       )}
 
-      {/* Confirmação de exclusão simples (mantive seu código original) */}
       {taskToDelete && openDeleteConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">

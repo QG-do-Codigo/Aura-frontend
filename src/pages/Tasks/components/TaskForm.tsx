@@ -152,7 +152,11 @@ export const TaskForm = ({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline">
+            <Button
+              type="button"
+              variant="outline"
+              className="cursor-pointer rounded-full"
+            >
               Cancelar
             </Button>
           </DialogClose>
@@ -160,6 +164,7 @@ export const TaskForm = ({
             type="button"
             onClick={handleSubmit}
             disabled={!title.trim() || !category.trim()}
+            className="cursor-pointer rounded-full bg-blue-600 text-white hover:bg-blue-700"
           >
             {isEditing ? "Salvar alterações" : "Criar tarefa"}
           </Button>

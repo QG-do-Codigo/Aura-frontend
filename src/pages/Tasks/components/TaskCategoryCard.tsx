@@ -27,7 +27,6 @@ export const TaskCategoryCard = ({
 
   return (
     <motion.div
-      onClick={onClick}
       whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 300 }}
       className={`${colorClass} relative rounded-2xl p-6 shadow-sm overflow-hidden group cursor-pointer`}
@@ -58,7 +57,6 @@ export const TaskCategoryCard = ({
         </div>
       )}
       <h2 className="text-xl font-semibold mb-2">{category}</h2>
-      {/* titulo da tarefa */}
       {tasks[0] && (
         <p className="text-gray-800 font-medium mb-4 truncate">
           {tasks[0].title}
@@ -75,6 +73,15 @@ export const TaskCategoryCard = ({
           transition={{ duration: 0.6, ease: "easeOut" }}
         />
       </div>
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        className="mt-4 w-full bg-ghost flex items-center justify-center py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition cursor-pointer"
+      >
+        Abrir Lista
+      </div>{" "}
     </motion.div>
   );
 };

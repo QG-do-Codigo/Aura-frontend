@@ -30,10 +30,16 @@ export const TasksPage = () => {
     <div className="p-6 min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Minhas Tarefas</h1>
+          <div className="flex-col">
+            {" "}
+            <h1 className="text-3xl font-bold text-gray-800">
+              Tarefas Domésticas
+            </h1>
+            <p className="text-gray-600">Mantenha seu lar em harmonia.</p>
+          </div>
           <button
             onClick={() => setOpenNewTaskForm(true)}
-            className="px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-sm"
+            className="px-5 py-3 bg-blue-600 text-white cursor-pointer rounded-full hover:bg-blue-700 transition shadow-sm"
           >
             + Nova Tarefa
           </button>

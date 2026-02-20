@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { NOTES_MOCK } from '../mocks/notes.mock'
-import type { Note } from '../types'
+import type { Note } from '../pages/notes/types'
+import { NOTES_MOCK } from '../pages/notes/mocks/notesMock'
 
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>(NOTES_MOCK)

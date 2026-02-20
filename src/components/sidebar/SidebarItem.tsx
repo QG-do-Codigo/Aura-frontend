@@ -8,6 +8,8 @@ interface SidebarItemProps {
   onClick: () => void;
   color: string;
   bg: string;
+  indicator: string;
+  id: string;
 }
 
 export function SidebarItem({
@@ -17,34 +19,52 @@ export function SidebarItem({
   onClick,
   color,
   bg,
+  indicator,
+  id,
 }: SidebarItemProps) {
   return (
-    <button onClick={onClick} className="relative w-full text-left">
+    <button
+      id={id}
+      onClick={onClick}
+      className={cn(
+        "w-full flex text-sm items-center gap-4 px-4 py-3.5 rounded-[20px] cursor-pointer transition-all duration-300 group relative overflow-hidden",
+        isActive
+          ? `${bg} ${color} font-black shadow-sm`
+          : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+      )}
+    >
+      {/* fundo ativo */}
       {isActive && (
         <motion.div
           layoutId="sidebar-active-bg"
-          className={cn("absolute inset-0 rounded-full", bg)}
+          className={cn("absolute inset-0 rounded-[20px]", bg)}
           transition={{ type: "spring", stiffness: 280, damping: 30 }}
         />
       )}
 
+      {/* indicador lateral */}
       {isActive && (
         <motion.div
           layoutId="sidebar-active-indicator"
-          className="absolute left-1 top-1/2 -translate-y-1/2 h-6 w-1.5 rounded-full bg-primary"
+          className={cn("absolute left-0 w-1.5 h-6 rounded-r-full", indicator)}
         />
       )}
 
       <div
         className={cn(
-          "relative z-10 flex items-center gap-3 px-5 py-3 rounded-full transition-colors cursor-pointer",
+          "relative z-10 flex items-center gap-2",
           isActive
-            ? cn(color, "font-medium")
+            ? cn(color, "font-semibold")
             : "text-muted-foreground hover:text-primary"
         )}
       >
-        <Icon className="w-5 h-5" />
-        <span>{label}</span>
+        <Icon
+          className={cn(
+            "w-5 h-5 transition-transform group-hover:scale-110",
+            isActive ? color : "text-slate-300"
+          )}
+        />
+        <span className="text-sm tracking-tight">{label}</span>
       </div>
     </button>
   );

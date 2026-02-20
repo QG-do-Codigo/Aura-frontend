@@ -1,5 +1,5 @@
-import { Outlet } from "react-router-dom";
-import { Sidebar } from "../components/sidebar/Sidebar";
+import { Outlet } from 'react-router-dom'
+import { Sidebar } from '../components/sidebar/Sidebar'
 
 export function DashboardLayout() {
   return (
@@ -10,5 +10,5 @@ export function DashboardLayout() {
         <Outlet />
       </main>
     </div>
-  );
+  )
 }

@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { AuthLayout } from '../../components/auth/auth-layout'
+import { AuthLayout } from '../../components/auth/AuthLayout'
 import { Button } from '../../components/UI/button'
 import { Input } from '../../components/UI/input'
 import auraLogo from '../../assets/logoaura.png'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
-import { authService } from '../../services/auth/auth.service'
+import { authService } from '../../services/auth/authService'
 import { ToastAlert } from '../../utils/toastAlert'
 import axios from 'axios'
 function SignUp() {
@@ -54,35 +54,37 @@ function SignUp() {
     })
   }
 
-  async function createUser(e: any){
-    e.preventDefault();
+  async function createUser(e: any) {
+    e.preventDefault()
 
     try {
       const data = await authService.createUser({
-        name, email, password
+        name,
+        email,
+        password,
       })
 
-      if(data){
-        ToastAlert("Logado com sucesso!", "success")
-                // redirecionar se quiser
-        navigate("/dashboard");
+      if (data) {
+        ToastAlert('Logado com sucesso!', 'success')
+        // redirecionar se quiser
+        navigate('/dashboard')
       }
     } catch (error) {
-        if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
 
         if (status === 401) {
-          ToastAlert("Email ou senha incorretos", "info");
-          return;
+          ToastAlert('Email ou senha incorretos', 'info')
+          return
         }
 
         if (status === 400) {
-          ToastAlert("Dados inválidos", "info");
-          return;
+          ToastAlert('Dados inválidos', 'info')
+          return
         }
       }
 
-      ToastAlert("Erro ao realizar o login", "error");
+      ToastAlert('Erro ao realizar o login', 'error')
     }
   }
 

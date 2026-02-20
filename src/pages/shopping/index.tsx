@@ -41,7 +41,6 @@ export function ShoppingListPage() {
       <ShoppingListGrid
         categories={shoppingList.categories}
         toggleItem={shoppingList.toggleItem}
-        deleteItem={shoppingList.deleteItem}
         addItem={shoppingList.addItem}
       />
 

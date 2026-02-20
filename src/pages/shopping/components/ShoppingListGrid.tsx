@@ -4,14 +4,12 @@ import { CategoryCard } from './ShoppingCard'
 interface Props {
   categories: ShoppingCategory[]
   toggleItem: (categoryId: string, itemId: string) => Promise<void>
-  deleteItem: (categoryId: string, itemId: string) => Promise<void>
   addItem: (categoryId: string, item: ShoppingItemInput) => void
 }
 
 export function ShoppingListGrid({
   categories,
   toggleItem,
-  deleteItem,
   addItem,
 }: Props) {
   return (
@@ -26,7 +24,6 @@ export function ShoppingListGrid({
           buttonColor={category.buttonColor}
           items={category.items}
           onToggle={toggleItem}
-          onDelete={deleteItem}
           onAdd={addItem}
         />
       ))}

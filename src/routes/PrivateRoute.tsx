@@ -1,9 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-interface PrivateRouteProps {
-  children: React.ReactNode;
-}
-
 export function PrivateRoute() {
   const token = localStorage.getItem("token");
 

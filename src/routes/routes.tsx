@@ -35,6 +35,14 @@ function AppRoutes() {
             }
           />
           <Route
+            path="tasks"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="notes"
             element={
               <PrivateRoute>
@@ -42,12 +50,51 @@ function AppRoutes() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="shopping"
             element={
               <PrivateRoute>
                 <ShoppingListPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="health"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="finance"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="sleep"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="ideas"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <PrivateRoute>
+                <div />
               </PrivateRoute>
             }
           />

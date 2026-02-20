@@ -1,13 +1,13 @@
-import { motion } from "framer-motion";
-import { cn } from "../surface";
+import { motion } from 'framer-motion'
+import { cn } from '../surface'
 
 interface SidebarItemProps {
-  icon: React.ElementType;
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-  color: string;
-  bg: string;
+  icon: React.ElementType
+  label: string
+  isActive: boolean
+  onClick: () => void
+  color: string
+  bg: string
 }
 
 export function SidebarItem({
@@ -24,8 +24,8 @@ export function SidebarItem({
       {isActive && (
         <motion.div
           layoutId="sidebar-active-bg"
-          className={cn("absolute inset-0 rounded-full", bg)}
-          transition={{ type: "spring", stiffness: 280, damping: 30 }}
+          className={cn('absolute inset-0 rounded-full', bg)}
+          transition={{ type: 'spring', stiffness: 280, damping: 30 }}
         />
       )}
 
@@ -39,15 +39,15 @@ export function SidebarItem({
 
       <div
         className={cn(
-          "relative z-10 flex items-center gap-3 px-5 py-3 rounded-full transition-colors cursor-pointer",
+          'relative z-10 flex items-center gap-3 px-5 py-3 rounded-full transition-colors cursor-pointer',
           isActive
-            ? cn(color, "font-medium") // aplica text-indigo-500, text-blue-500 etc.
-            : "text-muted-foreground hover:text-primary"
+            ? cn(color, 'font-medium') // aplica text-indigo-500, text-blue-500 etc.
+            : 'text-muted-foreground hover:text-primary'
         )}
       >
         <Icon className="w-5 h-5" />
         <span>{label}</span>
       </div>
     </button>
-  );
+  )
 }

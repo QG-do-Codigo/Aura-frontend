@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { sidebarItems } from "./sidebar-items";
-import { SidebarItem } from "./SidebarItem";
-import { Button } from "../UI/button";
-import { Menu, X } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from 'react'
+import { sidebarItems } from './SidebarItems'
+import { SidebarItem } from './SidebarItem'
+import { Button } from '../UI/button'
+import { Menu, X } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export const Sidebar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+    setIsMenuOpen(!isMenuOpen)
+  }
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate()
+  const location = useLocation()
   return (
     <div className="flex">
       <aside className="hidden lg:flex flex-col w-72 h-screen sticky top-0 bg-white border-r border-slate-100 p-6 z-50">
@@ -23,8 +23,8 @@ export const Sidebar = () => {
         </div>
 
         <nav className="flex flex-col gap-1">
-          {sidebarItems.map((item) => {
-            const isActive = location.pathname === item.href;
+          {sidebarItems.map(item => {
+            const isActive = location.pathname === item.href
 
             return (
               <SidebarItem
@@ -33,7 +33,7 @@ export const Sidebar = () => {
                 isActive={isActive}
                 onClick={() => navigate(item.href)}
               />
-            );
+            )
           })}
         </nav>
 
@@ -74,8 +74,8 @@ export const Sidebar = () => {
             </div>
 
             <nav className="flex flex-col gap-2">
-              {sidebarItems.map((item) => {
-                const isActive = location.pathname === item.href;
+              {sidebarItems.map(item => {
+                const isActive = location.pathname === item.href
 
                 return (
                   <SidebarItem
@@ -83,11 +83,11 @@ export const Sidebar = () => {
                     {...item}
                     isActive={isActive}
                     onClick={() => {
-                      navigate(item.href);
-                      setIsMenuOpen(false);
+                      navigate(item.href)
+                      setIsMenuOpen(false)
                     }}
                   />
-                );
+                )
               })}
             </nav>
 
@@ -106,5 +106,5 @@ export const Sidebar = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}

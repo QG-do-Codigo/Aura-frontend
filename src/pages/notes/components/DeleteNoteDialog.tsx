@@ -35,7 +35,7 @@ export function DeleteNoteDialog({ note, open, onClose, onConfirm }: Props) {
         <DialogFooter>
           <Button
             variant="ghost"
-            className="text-xl   rounded-[8px] "
+            className="text-xl rounded-[10px] "
             onClick={onClose}
           >
             Cancelar
@@ -43,7 +43,7 @@ export function DeleteNoteDialog({ note, open, onClose, onConfirm }: Props) {
 
           <Button
             variant="default"
-            className="text-xl   rounded-[8px] "
+            className="text-xl rounded-[10px] "
             onClick={() => {
               onConfirm(note.id)
               onClose()

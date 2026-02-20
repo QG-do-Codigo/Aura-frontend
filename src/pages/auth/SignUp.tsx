@@ -1,17 +1,22 @@
-import { Link } from 'react-router-dom'
-import { AuthLayout } from '../../components/auth/auth-layout'
+import { Link, useNavigate } from 'react-router-dom'
+import { AuthLayout } from '../../components/auth/AuthLayout'
 import { Button } from '../../components/UI/button'
 import { Input } from '../../components/UI/input'
 import auraLogo from '../../assets/logoaura.png'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
+import { authService } from '../../services/auth/authService'
+import { ToastAlert } from '../../utils/toastAlert'
+import axios from 'axios'
 function SignUp() {
   const [showPassword, setShowPassword] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const MAX_PASSWORD = 6
+  let navigate = useNavigate()
+
+  const MAX_PASSWORD = 12
   const isFormValid =
     name.trim() !== '' && email.trim() !== '' && password.trim() !== ''
 
@@ -49,6 +54,40 @@ function SignUp() {
     })
   }
 
+  async function createUser(e: any) {
+    e.preventDefault()
+
+    try {
+      const data = await authService.createUser({
+        name,
+        email,
+        password,
+      })
+
+      if (data) {
+        ToastAlert('Logado com sucesso!', 'success')
+        // redirecionar se quiser
+        navigate('/dashboard')
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status
+
+        if (status === 401) {
+          ToastAlert('Email ou senha incorretos', 'info')
+          return
+        }
+
+        if (status === 400) {
+          ToastAlert('Dados inválidos', 'info')
+          return
+        }
+      }
+
+      ToastAlert('Erro ao realizar o login', 'error')
+    }
+  }
+
   return (
     <AuthLayout>
       <div className="space-y-6">
@@ -68,7 +107,7 @@ function SignUp() {
             dia.
           </p>
         </div>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={createUser}>
           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
             Nome Completo *
           </label>

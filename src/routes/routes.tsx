@@ -1,36 +1,108 @@
-import { Dashboard } from "../pages/dashboard";
-import { DashboardLayout } from "../layouts/DashboardLayout";
-import { TasksPage } from "../pages/dashboard/Tasks";
-// import { NotesPage } from "../pages/dashboard/Notes";
-import { ShoppingPage } from "../pages/dashboard/Shopping";
-import { IdeasPage } from "../pages/dashboard/Ideas";
-import { SleepPage } from "../pages/dashboard/SleepPage";
-import { FinancePage } from "../pages/dashboard/Finance";
-import { HealthPage } from "../pages/dashboard/Health";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import SignIn from "../pages/auth/signIn";
-import SignUp from "../pages/auth/signUp";
-import { NotesPage } from "../pages/notes/components/notesPage";
+import { Dashboard } from '../pages/dashboard'
+import { DashboardLayout } from '../layouts/DashboardLayout'
+
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import SignIn from '../pages/auth/SignIn'
+import SignUp from '../pages/auth/SignUp'
+import { NotesPage } from '../pages/notes/components/NotesPage'
+import { PrivateRoute } from './PrivateRoute'
+import { ToastContainer } from 'react-toastify'
+import { ShoppingListPage } from '../pages/shopping'
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+        {'Rotas publicas'}
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<SignUp />} />
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="tasks" element={<TasksPage />} />
-          <Route path="notes" element={<NotesPage />} />
-          <Route path="shopping" element={<ShoppingPage />} />
-          <Route path="health" element={<HealthPage />} />
-          <Route path="finance" element={<FinancePage />} />
-          <Route path="sleep" element={<SleepPage />} />
-          <Route path="ideas" element={<IdeasPage />} />
+
+        {'Rotas privadas'}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="tasks"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="notes"
+            element={
+              <PrivateRoute>
+                <NotesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="shopping"
+            element={
+              <PrivateRoute>
+                <ShoppingListPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="health"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="finance"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="sleep"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="ideas"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="profile"
+            element={
+              <PrivateRoute>
+                <div />
+              </PrivateRoute>
+            }
+          />
         </Route>
       </Routes>
+      <ToastContainer />
     </BrowserRouter>
-  );
+  )
 }
 
-export default AppRoutes;
+export default AppRoutes

@@ -1,7 +1,8 @@
-import { NotesGrid } from './notesGrid'
-import { useNotes } from '../hooks/use.Notes'
-import { NoteDialog } from './noteFormDialog'
-import { DeleteNoteDialog } from './deleteNoteDialog'
+import { NotesGrid } from './NotesGrid'
+
+import { NoteDialog } from './NoteFormDialog'
+import { DeleteNoteDialog } from './DeleteNoteDialog'
+import { useNotes } from '../../../hooks/useNotes'
 
 export function NotesPage() {
   const {

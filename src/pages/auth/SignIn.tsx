@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Input } from '../../components/UI/input'
 import { Eye, EyeOff } from 'lucide-react'
-import { AuthLayout } from '../../components/auth/auth-layout'
+import { AuthLayout } from '../../components/auth/AuthLayout'
 import auraLogo from '../../assets/logoaura.png'
 import { Button } from '../../components/UI/button'
 import { Link, useNavigate } from 'react-router-dom'
 import { ForgotPasswordDialog } from '../../components/auth/ForgotPasswordDialog'
-import { authService } from '../../services/auth/auth.service'
+import { authService } from '../../services/auth/authService'
 import { ToastAlert } from '../../utils/toastAlert'
 import axios from 'axios'
 
@@ -47,37 +47,34 @@ function SignIn() {
   }
 
   async function handleLogin(e: any) {
-    e.preventDefault();
+    e.preventDefault()
 
     try {
-      const data = await authService.signIn({ email, password });
+      const data = await authService.signIn({ email, password })
 
-      if(data){
-        ToastAlert("Logado com sucesso!", "success")
+      if (data) {
+        ToastAlert('Logado com sucesso!', 'success')
         // redirecionar se quiser
-        navigate("/dashboard");
+        navigate('/dashboard')
       }
-      
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
+        const status = error.response?.status
 
         if (status === 401) {
-          ToastAlert("Email ou senha incorretos", "info");
-          return;
+          ToastAlert('Email ou senha incorretos', 'info')
+          return
         }
 
         if (status === 400) {
-          ToastAlert("Dados inválidos", "info");
-          return;
+          ToastAlert('Dados inválidos', 'info')
+          return
         }
       }
 
-      ToastAlert("Erro ao realizar o login", "error");
-
+      ToastAlert('Erro ao realizar o login', 'error')
     }
   }
-
 
   return (
     <AuthLayout>
@@ -100,7 +97,7 @@ function SignIn() {
         </div>
 
         <div className="space-y-5">
-          <form onSubmit={handleLogin} className='space-y-5'>
+          <form onSubmit={handleLogin} className="space-y-5">
             <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
               EMAIL
             </label>
@@ -155,7 +152,6 @@ function SignIn() {
 
             <Button
               disabled={!isFormValid}
-
               className="w-full h-16 text-xl font-black shadow-[0_20px_40px_-12px_rgba(184,198,219,0.5)] bg-primary text-white hover:bg-primary-hover rounded-3xl transition-all hover:-translate-y-1"
             >
               Entrar na Aura

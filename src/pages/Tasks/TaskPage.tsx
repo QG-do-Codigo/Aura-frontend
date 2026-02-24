@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTasks } from "./hooks/useTasks";
 import { TaskAreaGrid } from "./components/TaskAreaGrid";
 import { TaskForm } from "./components/TaskForm";
+import { TaskListModal } from "./components/TaskListModal";
 
 export interface Tasks {
   title: string;
@@ -52,6 +53,13 @@ export const TasksPage = () => {
           updateTask={updateTask}
           deleteTask={deleteTask}
           toggleTask={toggleTask}
+        />
+
+        <TaskListModal
+          tasks={tasks.filter((t) => t.category === selectedCategory)}
+          open={!!selectedCategory}
+          onOpenChange={() => setSelectedCategory(null)}
+          onSave={updateTask}
         />
 
         <TaskForm

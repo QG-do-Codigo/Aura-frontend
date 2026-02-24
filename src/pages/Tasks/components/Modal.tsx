@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogClose,
-} from "../../../components/UI/dialog"; // seu wrapper Radix
+} from "../../../components/UI/dialog";
 
 interface Props {
   task: Task;

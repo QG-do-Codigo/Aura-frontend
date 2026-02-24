@@ -4,6 +4,7 @@ import { groupTasksByCategory } from "../utils/groupTasksByCategory";
 import { TaskCategoryCard } from "./TaskCategoryCard";
 import { TaskForm } from "./TaskForm";
 import { CheckTaskModal } from "./Modal";
+import { TaskListModal } from "./TaskListModal";
 
 interface Props {
   tasks: Task[];
@@ -47,10 +48,7 @@ export const TaskAreaGrid = ({
             category={category}
             tasks={categoryTasks}
             onClick={() => {
-              const firstTask = categoryTasks[0];
-              if (!firstTask) return;
-
-              setTaskToEdit(firstTask);
+              setSelectedCategory(category);
             }}
             onEdit={(task) => {
               setTaskToEdit(task);
@@ -63,6 +61,15 @@ export const TaskAreaGrid = ({
           />
         ))}
       </div>
+
+      {selectedCategory && (
+        <TaskListModal
+          tasks={tasks.filter((t) => t.category === selectedCategory)}
+          open={!!selectedCategory}
+          onOpenChange={() => setSelectedCategory(null)}
+          onSave={updateTask}
+        />
+      )}
       {taskToEdit && (
         <CheckTaskModal
           task={taskToEdit}

@@ -57,11 +57,11 @@ export const TaskCategoryCard = ({
         </div>
       )}
       <h2 className="text-xl font-semibold mb-2">{category}</h2>
-      {tasks[0] && (
-        <p className="text-gray-800 font-medium mb-4 truncate">
-          {tasks[0].title}
+      {tasks.map((task) => (
+        <p key={task.id} className="text-gray-800 font-medium mb-2 truncate">
+          {task.title}
         </p>
-      )}
+      ))}
       <p className="text-sm text-gray-700 mb-3">
         {completed}/{total} concluídas
       </p>

@@ -14,18 +14,15 @@ import { Input } from '../../../components/UI/input'
 import { Textarea } from '../../../components/UI/textarea'
 import type { Note } from '../types'
 
-const COLORS = [
-  'bg-[var(--note-red)]',
-  'bg-[var(--note-green)]',
-  'bg-[var(--note-blue)]',
-  'bg-[var(--note-yellow)]',
-  'bg-[var(--note-purple)]',
-]
-interface noteDialogProps {
+const COLORS = ['#EE9A9A', '#7EDCA3', '#89B7E6', '#EBD67A', '#AEA0E6']
+const TITLE_MAX_LENGTH = 30
+const CONTENT_MAX_LENGTH = 320
+
+interface NoteDialogProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   initialData?: Note | null
-  onSubmit: (note: Note) => void
+  onSubmit: (note: Note) => void | Promise<void>
 }
 
 export function NoteDialog({
@@ -33,7 +30,7 @@ export function NoteDialog({
   onOpenChange,
   initialData,
   onSubmit,
-}: noteDialogProps) {
+}: NoteDialogProps) {
   const [open, setOpen] = useState(false)
 
   const isControlled = controlledOpen !== undefined
@@ -54,20 +51,28 @@ export function NoteDialog({
     }
   }, [initialData])
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (!title.trim() || !content.trim()) return
+    if (title.trim().length > TITLE_MAX_LENGTH) return
+    if (content.trim().length > CONTENT_MAX_LENGTH) return
+
     const note: Note = {
       id: initialData?.id ?? crypto.randomUUID(),
-      title,
-      content,
+      title: title.trim(),
+      content: content.trim(),
       color: selectedColor,
       date: '',
     }
 
-    onSubmit(note)
-    setOpen(false)
+    try {
+      await onSubmit(note)
+      setDialogOpen(false)
 
-    setTitle('')
-    setContent('')
+      setTitle('')
+      setContent('')
+    } catch {
+      // Error feedback is handled by the hook/service layer.
+    }
   }
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -87,29 +92,40 @@ export function NoteDialog({
 
         <div className="space-y-4">
           <Input
-            className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+            className="w-full rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
             placeholder="Título da nota"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            maxLength={TITLE_MAX_LENGTH}
+            onChange={e => setTitle(e.target.value.slice(0, TITLE_MAX_LENGTH))}
           />
           <Textarea
-            className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6 min-h-[120px]"
+            className="w-full rounded-[8px] border-slate-200 bg-slate-50/50 px-6 min-h-[120px] whitespace-pre-wrap break-all"
+            style={{ overflowWrap: 'anywhere' }}
             placeholder="Escreva sua ideia..."
             value={content}
-            onChange={e => setContent(e.target.value)}
+            maxLength={CONTENT_MAX_LENGTH}
+            onChange={e =>
+              setContent(e.target.value.slice(0, CONTENT_MAX_LENGTH))
+            }
           />
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {COLORS.map(color => (
               <button
                 key={color}
                 type="button"
                 onClick={() => setSelectedColor(color)}
-                className={`
-                  w-6 h-6 rounded-full border
-                  ${color}
-                  ${selectedColor === color ? 'ring-2 ring-slate-400' : ''}
-                `}
+                style={{
+                  backgroundColor: color,
+                  borderColor: '#7FA4C2',
+                  boxShadow:
+                    selectedColor === color
+                      ? '0 0 0 2px #7FA4C2'
+                      : '0 0 0 0 transparent',
+                }}
+                className={`h-7 w-7 rounded-full border-2 transition ${selectedColor === color ? 'scale-105' : ''}`}
+                aria-label={`Selecionar cor ${color}`}
+                aria-pressed={selectedColor === color}
               />
             ))}
           </div>
@@ -117,7 +133,7 @@ export function NoteDialog({
 
         <DialogFooter className="mt-6 flex  align-center justify-center">
           <Button
-            onClick={() => setDialogOpen(false)}
+            onClick={handleSubmit}
             className=" bg-primary hover:bg-primary-hover  rounded-[8px]"
           >
             {initialData ? 'Salvar alterações' : 'Criar nota'}

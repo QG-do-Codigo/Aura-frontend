@@ -23,27 +23,31 @@ export function NoteCard({
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300 }}
       style={{ backgroundColor: color }}
-      className="relative rounded-2xl p-6 shadow-sm overflow-hidden group"
+      className="relative min-w-0 rounded-2xl p-6 shadow-sm overflow-hidden group"
     >
       <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={onEdit}
-          className="p-2 rounded-lg bg-white/60 hover:bg-white transition"
+          className="grid h-8 w-8 place-items-center rounded-full border border-white/70 bg-white/70 text-slate-700 backdrop-blur-sm shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md"
+          aria-label="Editar nota"
         >
           <Edit2 size={14} />
         </button>
 
         <button
           onClick={onDelete}
-          className="p-2 rounded-lg bg-white/60 hover:bg-red-50 text-red-500 transition"
+          className="grid h-8 w-8 place-items-center rounded-full border border-white/70 bg-white/70 text-red-500 backdrop-blur-sm shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md"
+          aria-label="Excluir nota"
         >
           <Trash2 size={14} />
         </button>
       </div>
 
-      <h4 className="font-black text-lg mb-3 text-slate-800">{title}</h4>
+      <h4 className="mb-3 text-lg font-black text-slate-800 break-words [overflow-wrap:anywhere]">
+        {title}
+      </h4>
 
-      <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+      <p className="text-sm leading-relaxed text-slate-600 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
         {content}
       </p>
 

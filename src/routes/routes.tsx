@@ -1,7 +1,7 @@
 import { Dashboard } from '../pages/dashboard'
 import { DashboardLayout } from '../layouts/DashboardLayout'
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import SignIn from '../pages/auth/SignIn'
 import SignUp from '../pages/auth/SignUp'
 import { NotesPage } from '../pages/notes/components/NotesPage'
@@ -16,6 +16,7 @@ function AppRoutes() {
         {'Rotas publicas'}
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<SignUp />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         {'Rotas privadas'}
         <Route

@@ -141,17 +141,29 @@ function SignUp() {
           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
             SENHA *
           </label>
-          <div className="relative">
-            <Input
-              required
-              value={password}
-              maxLength={MAX_PASSWORD}
-              onChange={e => setPassword(e.target.value)}
-              onBlur={e => validateField('password', e.target.value)}
-              placeholder="Senha"
-              type={showPassword ? 'text' : 'password'}
-              className="h-14 rounded-[20px] border-slate-100 bg-slate-50/50 px-6"
-            />
+          <div>
+            <div className="relative">
+              <Input
+                required
+                value={password}
+                maxLength={MAX_PASSWORD}
+                onChange={e => setPassword(e.target.value)}
+                onBlur={e => validateField('password', e.target.value)}
+                placeholder="Senha"
+                type={showPassword ? 'text' : 'password'}
+                className="h-14 rounded-[20px] border-slate-100 bg-slate-50/50 px-6"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </button>
+            </div>
+
             <div className="flex justify-end mt-1">
               <span className="text-xs text-slate-400">
                 {password.length} / {MAX_PASSWORD}
@@ -159,17 +171,8 @@ function SignUp() {
             </div>
 
             {errors.password && (
-              <p className="ml-2 mt-1 text-xs text-red-500">
-                {errors.password}
-              </p>
+              <p className="ml-2 mt-1 text-xs text-red-500">{errors.password}</p>
             )}
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              {showPassword ? <EyeOff /> : <Eye />}
-            </button>
           </div>
 
           <Button

@@ -63,8 +63,10 @@ export const shoppingService = {
     return api.get<ShoppingCategoryResponse[]>(`${SHOPPING_ENDPOINT}/categories`)
   },
 
-  listItems() {
-    return api.get<ShoppingResponse[]>(`${SHOPPING_ENDPOINT}/list`)
+  listItems(categoryId?: string) {
+    return api.get<ShoppingResponse[]>(`${SHOPPING_ENDPOINT}/list`, {
+      params: categoryId ? { categoryId } : undefined,
+    })
   },
 
   createItem(data: CreateShoppingPayload) {

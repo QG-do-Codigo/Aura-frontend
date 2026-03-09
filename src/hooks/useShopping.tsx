@@ -214,6 +214,19 @@ export function useShopping() {
   const [categoryTemplates, setCategoryTemplates] = useState<CategoryTemplate[]>(
     defaultCategoryTemplates
   )
+  const [activeCategoryId, setActiveCategoryId] = useState('')
+
+  async function loadItems(
+    templates: CategoryTemplate[],
+    categoryId?: string
+  ) {
+    try {
+      const itemsResponse = await shoppingService.listItems(categoryId)
+      setCategories(groupByCategory(itemsResponse.data, templates))
+    } catch {
+      setCategories([])
+    }
+  }
 
   useEffect(() => {
     async function loadShoppingData() {
@@ -233,17 +246,20 @@ export function useShopping() {
       }
 
       setCategoryTemplates(templates)
-
-      try {
-        const itemsResponse = await shoppingService.listItems()
-        setCategories(groupByCategory(itemsResponse.data, templates))
-      } catch {
-        setCategories([])
-      }
+      await loadItems(templates)
     }
 
     void loadShoppingData()
   }, [])
+
+  async function filterByCategory(categoryId?: string) {
+    const normalizedCategoryId = categoryId?.trim() ?? ''
+    setActiveCategoryId(normalizedCategoryId)
+    await loadItems(
+      categoryTemplates,
+      normalizedCategoryId ? normalizedCategoryId : undefined
+    )
+  }
 
   async function toggleItem(categoryId: string, itemId: string) {
     const category = categories.find(item => item.id === categoryId)
@@ -411,9 +427,11 @@ export function useShopping() {
   return {
     categories,
     categoryTemplates,
+    activeCategoryId,
     toggleItem,
     deleteItem,
     addItems,
     createItem,
+    filterByCategory,
   }
 }

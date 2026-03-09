@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { Plus, Filter } from 'lucide-react'
 import { ShoppingListGrid } from './components/ShoppingListGrid'
 import { NewCategoryCardModal } from './components/NewCategoryCardModal'
+import { CategoryFilterModal } from './components/CategoryFilterModal'
 import { useShopping } from '../../hooks/useShopping'
 import type { ShoppingItemInput } from './types'
 
 export function ShoppingListPage() {
   const shoppingList = useShopping()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   function handleCreateItem(categoryId: string, values: ShoppingItemInput[]) {
     void Promise.all(
@@ -33,7 +35,10 @@ export function ShoppingListPage() {
         </div>
 
         <div className="flex gap-4">
-          <button className="p-2 bg-white rounded-2xl hover:bg-gray-100 transition cursor-pointer">
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="p-2 bg-white rounded-2xl hover:bg-gray-100 transition cursor-pointer"
+          >
             <Filter size={18} />
           </button>
 
@@ -58,6 +63,17 @@ export function ShoppingListPage() {
         categories={shoppingList.categoryTemplates}
         onSubmit={handleCreateItem}
         onCancel={() => setIsModalOpen(false)}
+      />
+
+      <CategoryFilterModal
+        isOpen={isFilterModalOpen}
+        categories={shoppingList.categoryTemplates}
+        selectedCategoryId={shoppingList.activeCategoryId}
+        onApply={async categoryId => {
+          await shoppingList.filterByCategory(categoryId)
+          setIsFilterModalOpen(false)
+        }}
+        onCancel={() => setIsFilterModalOpen(false)}
       />
     </div>
   )

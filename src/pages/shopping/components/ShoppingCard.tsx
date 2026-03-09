@@ -12,7 +12,7 @@ interface Props {
   buttonColor: string
   items: ShoppingItem[]
   onToggle: (categoryId: string, itemId: string) => Promise<void>
-  onAdd: (categoryId: string, item: ShoppingItemInput) => void
+  onAdd: (categoryId: string, items: ShoppingItemInput[]) => Promise<void>
 }
 
 export function CategoryCard({
@@ -27,10 +27,8 @@ export function CategoryCard({
 }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
-  function handleSubmit(values: ShoppingItemInput[]) {
-    values.forEach(value => {
-      onAdd(categoryId, value)
-    })
+  async function handleSubmit(values: ShoppingItemInput[]) {
+    await onAdd(categoryId, values)
     setIsOpen(false)
   }
 

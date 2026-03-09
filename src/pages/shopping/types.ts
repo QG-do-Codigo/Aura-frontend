@@ -1,13 +1,21 @@
 export interface ShoppingItem {
   id: string
   name: string
-  quantity: number
+  quantity: string
   purchased: boolean
+  categoryId?: string
 }
 
 export interface ShoppingItemInput {
   name: string
-  quantity: number
+  quantity?: string
+}
+
+export interface ShoppingCreateInput {
+  name: string
+  quantity: string
+  purchased: boolean
+  categoryId: string
 }
 
 export interface ShoppingCategory {

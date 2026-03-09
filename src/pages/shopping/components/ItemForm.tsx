@@ -5,16 +5,16 @@ import type { ShoppingItemInput } from '../types'
 interface Props {
   isOpen: boolean
   title: string
-  onSubmit: (values: ShoppingItemInput[]) => void
+  onSubmit: (values: ShoppingItemInput[]) => void | Promise<void>
   onCancel: () => void
 }
 
 export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
-  const [values, setValues] = useState([{ name: '', quantity: '1' }])
+  const [values, setValues] = useState([{ name: '', quantity: '' }])
 
   useEffect(() => {
     if (!isOpen) {
-      setValues([{ name: '', quantity: '1' }])
+      setValues([{ name: '', quantity: '' }])
       return
     }
 
@@ -44,12 +44,12 @@ export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
   }
 
   function handleAddField() {
-    setValues([...values, { name: '', quantity: '1' }])
+    setValues([...values, { name: '', quantity: '' }])
   }
 
   function handleRemoveField(index: number) {
     const updated = values.filter((_, i) => i !== index)
-    setValues(updated.length ? updated : [{ name: '', quantity: '1' }])
+    setValues(updated.length ? updated : [{ name: '', quantity: '' }])
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -58,7 +58,7 @@ export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
     const filtered = values
       .map(item => ({
         name: item.name.trim(),
-        quantity: Math.max(1, Number(item.quantity) || 1),
+        quantity: String(Math.max(1, Number(item.quantity) || 1)),
       }))
       .filter(item => item.name)
     if (!filtered.length) return
@@ -106,6 +106,7 @@ export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
                 <input
                   type="number"
                   min={1}
+                  step={1}
                   value={value.quantity}
                   onChange={e => handleQuantityChange(index, e.target.value)}
                   placeholder="Qtd"

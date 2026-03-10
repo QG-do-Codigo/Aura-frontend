@@ -57,7 +57,7 @@ export function NoteDialog({
     if (content.trim().length > CONTENT_MAX_LENGTH) return
 
     const note: Note = {
-      id: initialData?.id ?? crypto.randomUUID(),
+      id: initialData?.id ?? '',
       title: title.trim(),
       content: content.trim(),
       color: selectedColor,

@@ -69,11 +69,10 @@ export function NewCategoryCardModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
     const filteredValues = values
       .map(item => ({
         name: item.name.trim(),
-        quantity: Math.max(1, Number(item.quantity) || 1),
+        quantity: String(Math.max(1, Number(item.quantity) || 1)),
       }))
       .filter(item => item.name)
 
@@ -146,6 +145,7 @@ export function NewCategoryCardModal({
                 <input
                   type="number"
                   min={1}
+                  step={1}
                   value={value.quantity}
                   onChange={e => handleQuantityChange(index, e.target.value)}
                   placeholder="Qtd"
@@ -188,7 +188,7 @@ export function NewCategoryCardModal({
               type="submit"
               className="h-11 px-5 rounded-2xl bg-green-600 text-white hover:bg-green-700 transition font-medium"
             >
-              Criar
+              Salvar
             </button>
           </div>
         </form>

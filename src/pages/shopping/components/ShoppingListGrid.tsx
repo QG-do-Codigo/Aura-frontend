@@ -4,13 +4,13 @@ import { CategoryCard } from './ShoppingCard'
 interface Props {
   categories: ShoppingCategory[]
   toggleItem: (categoryId: string, itemId: string) => Promise<void>
-  addItem: (categoryId: string, item: ShoppingItemInput) => void
+  addItems: (categoryId: string, items: ShoppingItemInput[]) => Promise<void>
 }
 
 export function ShoppingListGrid({
   categories,
   toggleItem,
-  addItem,
+  addItems,
 }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
@@ -24,7 +24,7 @@ export function ShoppingListGrid({
           buttonColor={category.buttonColor}
           items={category.items}
           onToggle={toggleItem}
-          onAdd={addItem}
+          onAdd={addItems}
         />
       ))}
     </div>

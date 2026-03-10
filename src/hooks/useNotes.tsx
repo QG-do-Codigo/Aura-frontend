@@ -72,18 +72,19 @@ export function useNotes() {
   }
 
   async function editNote(updated: Note) {
-    if (!updated.id) return
+    const noteId = selectedNote?.id ?? updated.id
+    if (!noteId) return
 
     try {
-      const response = await notesService.updateNote(updated.id, {
+      const response = await notesService.updateNote(noteId, {
         title: updated.title,
         content: updated.content,
         color: updated.color,
       })
 
-      const mapped = mapNote(response.data, updated)
+      const mapped = mapNote(response.data, { ...updated, id: noteId })
       setNotes(prev =>
-        prev.map(note => (note.id === updated.id ? mapped : note))
+        prev.map(note => (note.id === noteId ? mapped : note))
       )
       ToastAlert('Nota editada com sucesso!', 'success')
     } catch (error) {

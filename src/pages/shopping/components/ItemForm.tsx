@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react'
 import { Plus, X } from 'lucide-react'
+import type { ShoppingItemInput } from '../types'
 
 interface Props {
   isOpen: boolean
   title: string
-  onSubmit: (values: string[]) => void
+  onSubmit: (values: ShoppingItemInput[]) => void
   onCancel: () => void
 }
 
 export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
-  const [values, setValues] = useState<string[]>([''])
+  const [values, setValues] = useState([{ name: '', quantity: '1' }])
 
   useEffect(() => {
     if (!isOpen) {
-      setValues([''])
+      setValues([{ name: '', quantity: '1' }])
       return
     }
 
@@ -30,25 +31,36 @@ export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
 
   if (!isOpen) return null
 
-  function handleChange(index: number, value: string) {
+  function handleNameChange(index: number, value: string) {
     const updated = [...values]
-    updated[index] = value
+    updated[index].name = value
+    setValues(updated)
+  }
+
+  function handleQuantityChange(index: number, value: string) {
+    const updated = [...values]
+    updated[index].quantity = value
     setValues(updated)
   }
 
   function handleAddField() {
-    setValues([...values, ''])
+    setValues([...values, { name: '', quantity: '1' }])
   }
 
   function handleRemoveField(index: number) {
     const updated = values.filter((_, i) => i !== index)
-    setValues(updated.length ? updated : [''])
+    setValues(updated.length ? updated : [{ name: '', quantity: '1' }])
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    const filtered = values.map(value => value.trim()).filter(Boolean)
+    const filtered = values
+      .map(item => ({
+        name: item.name.trim(),
+        quantity: Math.max(1, Number(item.quantity) || 1),
+      }))
+      .filter(item => item.name)
     if (!filtered.length) return
 
     onSubmit(filtered)
@@ -85,10 +97,19 @@ export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
             {values.map((value, index) => (
               <div key={index} className="flex gap-2">
                 <input
-                  value={value}
-                  onChange={e => handleChange(index, e.target.value)}
+                  value={value.name}
+                  onChange={e => handleNameChange(index, e.target.value)}
                   placeholder={`Item ${index + 1}`}
                   className="flex-1 px-4 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+                />
+
+                <input
+                  type="number"
+                  min={1}
+                  value={value.quantity}
+                  onChange={e => handleQuantityChange(index, e.target.value)}
+                  placeholder="Qtd"
+                  className="w-24 px-3 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
                 />
 
                 {values.length > 1 && (
@@ -127,7 +148,7 @@ export function ItemModal({ isOpen, title, onSubmit, onCancel }: Props) {
               type="submit"
               className="h-11 px-5 rounded-2xl bg-green-600 text-white hover:bg-green-700 transition font-medium"
             >
-              Salvar itens
+              Salvar
             </button>
           </div>
         </form>

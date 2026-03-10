@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Plus, X } from 'lucide-react'
+import type { ShoppingItemInput } from '../types'
 
 interface CategoryOption {
   id: string
   title: string
+  icon: string
 }
 
 interface Props {
   isOpen: boolean
   categories: CategoryOption[]
-  onSubmit: (categoryId: string, values: string[]) => void
+  onSubmit: (categoryId: string, values: ShoppingItemInput[]) => void
   onCancel: () => void
 }
 
@@ -20,12 +22,12 @@ export function NewCategoryCardModal({
   onCancel,
 }: Props) {
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [values, setValues] = useState<string[]>([''])
+  const [values, setValues] = useState([{ name: '', quantity: '1' }])
 
   useEffect(() => {
     if (!isOpen) {
       setSelectedCategory('')
-      setValues([''])
+      setValues([{ name: '', quantity: '1' }])
       return
     }
 
@@ -44,25 +46,36 @@ export function NewCategoryCardModal({
 
   if (!isOpen) return null
 
-  function handleChange(index: number, value: string) {
+  function handleNameChange(index: number, value: string) {
     const updated = [...values]
-    updated[index] = value
+    updated[index].name = value
+    setValues(updated)
+  }
+
+  function handleQuantityChange(index: number, value: string) {
+    const updated = [...values]
+    updated[index].quantity = value
     setValues(updated)
   }
 
   function handleAddField() {
-    setValues(prev => [...prev, ''])
+    setValues(prev => [...prev, { name: '', quantity: '1' }])
   }
 
   function handleRemoveField(index: number) {
     const updated = values.filter((_, i) => i !== index)
-    setValues(updated.length ? updated : [''])
+    setValues(updated.length ? updated : [{ name: '', quantity: '1' }])
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    const filteredValues = values.map(value => value.trim()).filter(Boolean)
+    const filteredValues = values
+      .map(item => ({
+        name: item.name.trim(),
+        quantity: Math.max(1, Number(item.quantity) || 1),
+      }))
+      .filter(item => item.name)
 
     if (!selectedCategory || !filteredValues.length) return
 
@@ -114,7 +127,7 @@ export function NewCategoryCardModal({
             >
               {categories.map(category => (
                 <option key={category.id} value={category.id}>
-                  {category.title}
+                  {category.icon} {category.title}
                 </option>
               ))}
             </select>
@@ -124,10 +137,19 @@ export function NewCategoryCardModal({
             {values.map((value, index) => (
               <div key={index} className="flex gap-2">
                 <input
-                  value={value}
-                  onChange={e => handleChange(index, e.target.value)}
+                  value={value.name}
+                  onChange={e => handleNameChange(index, e.target.value)}
                   placeholder={`Item ${index + 1}`}
                   className="flex-1 px-4 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+                />
+
+                <input
+                  type="number"
+                  min={1}
+                  value={value.quantity}
+                  onChange={e => handleQuantityChange(index, e.target.value)}
+                  placeholder="Qtd"
+                  className="w-24 px-3 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
                 />
 
                 {values.length > 1 && (
@@ -166,7 +188,7 @@ export function NewCategoryCardModal({
               type="submit"
               className="h-11 px-5 rounded-2xl bg-green-600 text-white hover:bg-green-700 transition font-medium"
             >
-              Criar card
+              Criar
             </button>
           </div>
         </form>

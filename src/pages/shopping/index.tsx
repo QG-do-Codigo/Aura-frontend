@@ -3,12 +3,13 @@ import { Plus, Filter } from 'lucide-react'
 import { ShoppingListGrid } from './components/ShoppingListGrid'
 import { NewCategoryCardModal } from './components/NewCategoryCardModal'
 import { useShopping } from '../../hooks/useShopping'
+import type { ShoppingItemInput } from './types'
 
 export function ShoppingListPage() {
   const shoppingList = useShopping()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  function handleCreateCard(categoryId: string, values: string[]) {
+  function handleCreateCard(categoryId: string, values: ShoppingItemInput[]) {
     shoppingList.createCategoryCard(categoryId, values)
     setIsModalOpen(false)
   }

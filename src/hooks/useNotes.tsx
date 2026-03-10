@@ -5,6 +5,33 @@ import type { NoteResponse } from '../services/notes/notesService'
 import { notesService } from '../services/notes/notesService'
 import { ToastAlert } from '../utils/toastAlert'
 
+type NoteResponseList =
+  | NoteResponse[]
+  | { notes?: NoteResponse[] }
+  | { data?: NoteResponse[] }
+
+type NoteResponseEnvelope =
+  | NoteResponse
+  | { note?: NoteResponse }
+  | { data?: NoteResponse }
+
+function unwrapNoteResponse(data: NoteResponseEnvelope): Partial<NoteResponse> {
+  if (data && typeof data === 'object') {
+    if ('note' in data && data.note) return data.note
+    if ('data' in data && data.data) return data.data
+  }
+  return data as NoteResponse
+}
+
+function unwrapNoteList(data: NoteResponseList): NoteResponse[] {
+  if (Array.isArray(data)) return data
+  if (data && typeof data === 'object') {
+    if ('notes' in data && Array.isArray(data.notes)) return data.notes
+    if ('data' in data && Array.isArray(data.data)) return data.data
+  }
+  return []
+}
+
 function mapNote(response: Partial<NoteResponse>, fallback?: Note): Note {
   const noteId = response.id ?? response._id ?? fallback?.id ?? ''
   const createdAt = response.createdAt ?? fallback?.createdAt
@@ -26,12 +53,16 @@ export function useNotes() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [action, setAction] = useState<'edit' | 'delete' | null>(null)
   const [isFiltering, setIsFiltering] = useState(false)
+  const [lastFilter, setLastFilter] = useState('')
 
   const filterNotesByTitle = useCallback(async (title: string) => {
+    const normalizedTitle = title.trim()
+    setLastFilter(normalizedTitle)
     setIsFiltering(true)
     try {
-      const response = await notesService.filterNotes(title.trim())
-      setNotes(response.data.map(note => mapNote(note)))
+      const response = await notesService.filterNotes(normalizedTitle)
+      const list = unwrapNoteList(response.data)
+      setNotes(list.map(note => mapNote(note)))
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const message = (error.response?.data as { message?: string })?.message
@@ -57,8 +88,12 @@ export function useNotes() {
         color: note.color,
       })
 
-      const createdNote = mapNote(response.data, note)
-      setNotes(prev => [createdNote, ...prev])
+      const createdNote = mapNote(unwrapNoteResponse(response.data), note)
+      if (!createdNote.id) {
+        await filterNotesByTitle(lastFilter)
+      } else {
+        setNotes(prev => [createdNote, ...prev])
+      }
       ToastAlert('Nota cadastrada com sucesso!', 'success')
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -81,7 +116,7 @@ export function useNotes() {
         color: updated.color,
       })
 
-      const mapped = mapNote(response.data, updated)
+      const mapped = mapNote(unwrapNoteResponse(response.data), updated)
       setNotes(prev =>
         prev.map(note => (note.id === updated.id ? mapped : note))
       )

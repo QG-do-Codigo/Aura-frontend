@@ -2,14 +2,26 @@ import { useState } from 'react'
 import { Plus, Filter } from 'lucide-react'
 import { ShoppingListGrid } from './components/ShoppingListGrid'
 import { NewCategoryCardModal } from './components/NewCategoryCardModal'
+import { CategoryFilterModal } from './components/CategoryFilterModal'
 import { useShopping } from '../../hooks/useShopping'
+import type { ShoppingItemInput } from './types'
 
 export function ShoppingListPage() {
   const shoppingList = useShopping()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
-  function handleCreateCard(categoryId: string, values: string[]) {
-    shoppingList.createCategoryCard(categoryId, values)
+  function handleCreateItem(categoryId: string, values: ShoppingItemInput[]) {
+    void Promise.all(
+      values.map(value =>
+        shoppingList.createItem({
+          name: value.name,
+          quantity: value.quantity ?? '1',
+          purchased: false,
+          categoryId,
+        })
+      )
+    )
     setIsModalOpen(false)
   }
 
@@ -23,7 +35,10 @@ export function ShoppingListPage() {
         </div>
 
         <div className="flex gap-4">
-          <button className="p-2 bg-white rounded-2xl hover:bg-gray-100 transition cursor-pointer">
+          <button
+            onClick={() => setIsFilterModalOpen(true)}
+            className="p-2 bg-white rounded-2xl hover:bg-gray-100 transition cursor-pointer"
+          >
             <Filter size={18} />
           </button>
 
@@ -40,14 +55,25 @@ export function ShoppingListPage() {
       <ShoppingListGrid
         categories={shoppingList.categories}
         toggleItem={shoppingList.toggleItem}
-        addItem={shoppingList.addItem}
+        addItems={shoppingList.addItems}
       />
 
       <NewCategoryCardModal
         isOpen={isModalOpen}
         categories={shoppingList.categoryTemplates}
-        onSubmit={handleCreateCard}
+        onSubmit={handleCreateItem}
         onCancel={() => setIsModalOpen(false)}
+      />
+
+      <CategoryFilterModal
+        isOpen={isFilterModalOpen}
+        categories={shoppingList.categoryTemplates}
+        selectedCategoryId={shoppingList.activeCategoryId}
+        onApply={async categoryId => {
+          await shoppingList.filterByCategory(categoryId)
+          setIsFilterModalOpen(false)
+        }}
+        onCancel={() => setIsFilterModalOpen(false)}
       />
     </div>
   )

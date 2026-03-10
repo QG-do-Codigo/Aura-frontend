@@ -1,109 +1,44 @@
-import { Dashboard } from '../pages/dashboard'
-import { DashboardLayout } from '../layouts/DashboardLayout'
+import { TasksPage } from "../pages/Tasks/TaskPage";
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import SignIn from '../pages/auth/SignIn'
-import SignUp from '../pages/auth/SignUp'
-import { NotesPage } from '../pages/notes/components/NotesPage'
-import { PrivateRoute } from './PrivateRoute'
-import { ToastContainer } from 'react-toastify'
-import { ShoppingListPage } from '../pages/shopping'
+import { RootRedirect } from "../pages/auth/redirect";
+import { Dashboard } from "../pages/dashboard";
+import { DashboardLayout } from "../layouts/DashboardLayout";
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SignIn from "../pages/auth/SignIn";
+import SignUp from "../pages/auth/SignUp";
+import { NotesPage } from "../pages/notes/components/NotesPage";
+import { PrivateRoute } from "./PrivateRoute";
+import { ToastContainer } from "react-toastify";
+import { ShoppingListPage } from "../pages/shopping";
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {'Rotas publicas'}
+        <Route path="/" element={<RootRedirect />} />
+        {/* rotas públicas */}
         <Route path="/login" element={<SignIn />} />
         <Route path="/register" element={<SignUp />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {'Rotas privadas'}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <DashboardLayout />
-            </PrivateRoute>
-          }
-        >
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <Dashboard />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="tasks"
-            element={
-              <PrivateRoute>
-                <div />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="notes"
-            element={
-              <PrivateRoute>
-                <NotesPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="shopping"
-            element={
-              <PrivateRoute>
-                <ShoppingListPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="health"
-            element={
-              <PrivateRoute>
-                <div />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="finance"
-            element={
-              <PrivateRoute>
-                <div />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="sleep"
-            element={
-              <PrivateRoute>
-                <div />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="ideas"
-            element={
-              <PrivateRoute>
-                <div />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="profile"
-            element={
-              <PrivateRoute>
-                <div />
-              </PrivateRoute>
-            }
-          />
+        {/* rotas privadas – agrupadas em um único PrivateRoute pai */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="tasks" element={<TasksPage />} />
+            <Route path="notes" element={<NotesPage />} />
+            <Route path="shopping" element={<ShoppingListPage />} />
+            {/* <Route path="health" element={<HealthPage />} />
+            <Route path="finance" element={<FinancePage />} />
+            <Route path="sleep" element={<SleepPage />} />
+            <Route path="ideas" element={<IdeasPage />} /> */}
+          </Route>
         </Route>
       </Routes>
+
       <ToastContainer />
     </BrowserRouter>
-  )
+  );
 }
 
-export default AppRoutes
+export default AppRoutes;

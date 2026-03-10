@@ -16,6 +16,16 @@ export const Sidebar = () => {
 
   const navigate = useNavigate()
 
+  const handleLogout = () => {
+    // se você salva token:
+    localStorage.removeItem('token')
+
+    // ou se quiser limpar tudo:
+    // localStorage.clear()
+
+    navigate('/login')
+  }
+
   return (
     <>
       <aside className="hidden lg:flex flex-col w-72 h-screen sticky top-0 bg-white border-r border-slate-100 p-6 z-50">
@@ -34,6 +44,11 @@ export const Sidebar = () => {
                 {...item}
                 isActive={isActive}
                 onClick={() => {
+                  if (item.id === 'Sair') {
+                    handleLogout()
+                    return
+                  }
+
                   setActiveTab(item.id)
                   navigate(item.href)
                 }}
@@ -99,6 +114,12 @@ export const Sidebar = () => {
                     {...item}
                     isActive={isActive}
                     onClick={() => {
+                      if (item.id === 'Sair') {
+                        handleLogout()
+                        setIsMenuOpen(false)
+                        return
+                      }
+
                       setActiveTab(item.id)
                       navigate(item.href)
                       setIsMenuOpen(false)

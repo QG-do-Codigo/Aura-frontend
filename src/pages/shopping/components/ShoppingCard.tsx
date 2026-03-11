@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import type { ShoppingItem, ShoppingItemInput } from '../types'
 import { ItemModal } from './ItemForm'
 
@@ -13,6 +13,7 @@ interface Props {
   items: ShoppingItem[]
   onToggle: (categoryId: string, itemId: string) => Promise<void>
   onAdd: (categoryId: string, items: ShoppingItemInput[]) => Promise<void>
+  onDelete: (categoryId: string, itemId: string) => Promise<void>
 }
 
 export function CategoryCard({
@@ -24,6 +25,7 @@ export function CategoryCard({
   items,
   onToggle,
   onAdd,
+  onDelete,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -89,6 +91,17 @@ export function CategoryCard({
                 Qtd: {item.quantity}
               </span>
 
+              <button
+                type="button"
+                aria-label={`Remover ${item.name}`}
+                onClick={event => {
+                  event.stopPropagation()
+                  void onDelete(categoryId, item.id)
+                }}
+                className="ml-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>

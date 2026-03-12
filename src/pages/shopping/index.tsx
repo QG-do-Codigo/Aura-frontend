@@ -56,6 +56,7 @@ export function ShoppingListPage() {
         categories={shoppingList.categories}
         toggleItem={shoppingList.toggleItem}
         addItems={shoppingList.addItems}
+        deleteItem={shoppingList.deleteItem}
       />
 
       <NewCategoryCardModal

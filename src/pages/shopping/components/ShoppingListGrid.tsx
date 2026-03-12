@@ -5,12 +5,14 @@ interface Props {
   categories: ShoppingCategory[]
   toggleItem: (categoryId: string, itemId: string) => Promise<void>
   addItems: (categoryId: string, items: ShoppingItemInput[]) => Promise<void>
+  deleteItem: (categoryId: string, itemId: string) => Promise<void>
 }
 
 export function ShoppingListGrid({
   categories,
   toggleItem,
   addItems,
+  deleteItem,
 }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
@@ -25,6 +27,7 @@ export function ShoppingListGrid({
           items={category.items}
           onToggle={toggleItem}
           onAdd={addItems}
+          onDelete={deleteItem}
         />
       ))}
     </div>

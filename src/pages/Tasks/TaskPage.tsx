@@ -28,33 +28,39 @@ export const TasksPage = () => {
   }, [token]);
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
+    <div className="p-8 min-h-screen bg-gray-50 text-gray-800 font-sans">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex-col">
-            {" "}
-            <h1 className="text-3xl font-bold text-gray-800">
-              Tarefas Domésticas
+        <div className="flex justify-between items-center mb-10 border-b border-gray-200 pb-6">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-4xl font-extrabold tracking-tight">
+              TAREFAS DOMÉSTICAS
             </h1>
-            <p className="text-gray-600">Mantenha seu lar em harmonia.</p>
+            <p className="text-gray-500 uppercase text-sm tracking-wide">
+              Organização diária simplificada
+            </p>
           </div>
+
           <button
             onClick={() => setOpenNewTaskForm(true)}
-            className="px-5 py-3 bg-blue-600 text-white cursor-pointer rounded-full hover:bg-blue-700 transition shadow-sm"
+            className="px-6 py-3 bg-blue-500 text-white font-semibold rounded-full shadow-md hover:bg-blue-700 transition"
           >
             + Nova Tarefa
           </button>
         </div>
 
-        <TaskAreaGrid
-          tasks={tasks}
-          onOpenCategory={(cat) => setSelectedCategory(cat)}
-          createTask={createTask}
-          updateTask={updateTask}
-          deleteTask={deleteTask}
-          toggleTask={toggleTask}
-        />
+        {/* card */}
+        <div className=" ">
+          <TaskAreaGrid
+            tasks={tasks}
+            onOpenCategory={(cat) => setSelectedCategory(cat)}
+            createTask={createTask}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
+            toggleTask={toggleTask}
+          />
+        </div>
 
+        {/* modals */}
         <TaskListModal
           tasks={tasks.filter((t) => t.category === selectedCategory)}
           open={!!selectedCategory}

@@ -104,33 +104,52 @@ export const TaskAreaGrid = ({
       )}
 
       {taskToDelete && openDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              Excluir tarefa?
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-gray-50 border border-gray-300 p-8 max-w-md w-full mx-4 shadow-lg">
+            <h2 className="text-2xl font-extrabold text-red-600 mb-4 tracking-wide">
+              EXCLUIR TAREFA?
             </h2>
-            <p className="text-gray-700 mb-8">
+            <p className="text-gray-800 mb-8 leading-relaxed">
               Você está prestes a excluir permanentemente:
               <br />
-              <strong className="block mt-2">"{taskToDelete.title}"</strong>
+              <strong className="block mt-2 text-gray-900">
+                "{taskToDelete.title}"
+              </strong>
             </p>
+
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => {
                   setOpenDeleteConfirm(false);
                   setTaskToDelete(null);
                 }}
-                className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition"
+                className="
+            px-6 py-3
+            border border-gray-400
+            font-medium
+            hover:bg-gray-100
+            transition
+            tracking-wide
+          "
               >
                 Cancelar
               </button>
+
               <button
                 onClick={() => {
                   deleteTask(taskToDelete.id);
                   setOpenDeleteConfirm(false);
                   setTaskToDelete(null);
                 }}
-                className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition"
+                className="
+            px-6 py-3
+            bg-red-600
+            text-white
+            font-semibold
+            hover:bg-red-700
+            transition
+            tracking-wide
+          "
               >
                 Excluir
               </button>

@@ -38,7 +38,7 @@ export const TaskCategoryCard = ({
               e.stopPropagation();
               onEdit?.(firstTask);
             }}
-            className="p-2 rounded-lg bg-white/70 hover:bg-white text-gray-700 transition"
+            className="grid h-8 w-8 place-items-center rounded-full border border-white/70 bg-white/70 text-blue backdrop-blur-sm shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md"
             title="Editar tarefa"
           >
             <Edit2 size={16} />
@@ -49,7 +49,7 @@ export const TaskCategoryCard = ({
               e.stopPropagation();
               onDelete?.(firstTask);
             }}
-            className="p-2 rounded-lg bg-white/70 hover:bg-red-50 text-red-600 transition"
+            className="grid h-8 w-8 place-items-center rounded-full border border-white/70 bg-white/70 text-red-500 backdrop-blur-sm shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md"
             title="Excluir tarefa"
           >
             <Trash2 size={16} />
@@ -57,17 +57,17 @@ export const TaskCategoryCard = ({
         </div>
       )}
       <h2 className="text-xl font-semibold mb-2">{category}</h2>
-      {tasks.map((task) => (
+      {/* {tasks.map((task) => (
         <p key={task.id} className="text-gray-800 font-medium mb-2 truncate">
           {task.title}
         </p>
-      ))}
-      <p className="text-sm text-gray-700 mb-3">
+      ))} */}
+      <p className="text-sm text-gray-700 font-bold mb-3">
         {completed}/{total} concluídas
       </p>
       <div className="w-full bg-white/40 h-3 rounded-full overflow-hidden">
         <motion.div
-          className="bg-white h-3 rounded-full"
+          className="bg-blue-500 h-3 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -78,7 +78,7 @@ export const TaskCategoryCard = ({
           e.stopPropagation();
           onClick();
         }}
-        className="mt-4 w-full bg-ghost flex items-center justify-center py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition cursor-pointer"
+        className="mt-4 w-full bg-white flex items-center justify-center py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition cursor-pointer"
       >
         Abrir Lista
       </div>{" "}

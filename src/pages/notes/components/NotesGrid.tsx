@@ -15,7 +15,7 @@ export function NotesGrid({ notes, onEdit, onDelete }: NotesGridProps) {
           key={note.id}
           title={note.title}
           content={note.content}
-          date={note.date}
+          date={note.date ?? ''}
           color={note.color}
           onEdit={() => onEdit(note)}
           onDelete={() => onDelete(note)}

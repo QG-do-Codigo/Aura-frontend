@@ -1,78 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Moon, AlarmClock, Sparkles } from 'lucide-react'
+import { Moon, AlarmClock, Sparkles, Trash2 } from 'lucide-react'
 import { Switch } from '../../components/UI/switch'
 import { useSleep } from '../../hooks/useSleep'
 import { ToastAlert } from '../../utils/toastAlert'
 
-type SleepEntry = {
-  day: string
-  label: string
-  value: string
-}
-
-const WEEK_TEMPLATE: SleepEntry[] = [
-  { day: 'mon', label: 'Seg', value: '7.2' },
-  { day: 'tue', label: 'Ter', value: '6.8' },
-  { day: 'wed', label: 'Qua', value: '7.5' },
-  { day: 'thu', label: 'Qui', value: '6.9' },
-  { day: 'fri', label: 'Sex', value: '7.8' },
-  { day: 'sat', label: 'Sáb', value: '8.1' },
-  { day: 'sun', label: 'Dom', value: '7.4' },
-]
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value))
-}
-
-function buildPath(values: number[]) {
-  const min = 4
-  const max = 9
-  const width = 100
-  const height = 40
-  const step = width / (values.length - 1)
-
-  const points = values.map((value, index) => {
-    const normalized = (clamp(value, min, max) - min) / (max - min)
-    const x = index * step
-    const y = height - normalized * 28 - 6
-    return { x, y }
-  })
-
-  const line = points
-    .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`)
-    .join(' ')
-
-  const area = `${line} L ${width},${height} L 0,${height} Z`
-
-  return { line, area }
-}
-
 export function SleepPage() {
-  const { activeGoal, loading, upsertGoal } = useSleep()
-  const [entries, setEntries] = useState<SleepEntry[]>(WEEK_TEMPLATE)
+  const { goals, activeGoal, loading, upsertGoal, updateGoal, deleteGoal } = useSleep()
   const [relaxMode, setRelaxMode] = useState(true)
   const [goalHours, setGoalHours] = useState(7.5)
   const [alarmHour, setAlarmHour] = useState('')
   const [alarmMinute, setAlarmMinute] = useState('')
   const [bedtimeRoutine, setBedtimeRoutine] = useState('')
   const [saving, setSaving] = useState(false)
+  const [editingGoalId, setEditingGoalId] = useState<string | null>(null)
 
-  const values = useMemo(
-    () =>
-      entries.map(entry => {
-        const parsed = Number(entry.value)
-        return Number.isFinite(parsed) ? parsed : 0
-      }),
-    [entries]
-  )
-
-  const average =
-    values.reduce((total, value) => total + value, 0) / values.length
-  const bestValue = Math.max(...values)
-  const bestIndex = values.findIndex(value => value === bestValue)
-  const bestDay = entries[bestIndex]?.label ?? '-'
-
-  const { line, area } = useMemo(() => buildPath(values), [values])
+  const sortedGoals = useMemo(() => {
+    return [...goals].sort((a, b) => {
+      const aTime = new Date(a.updatedAt ?? a.createdAt).getTime()
+      const bTime = new Date(b.updatedAt ?? b.createdAt).getTime()
+      return bTime - aTime
+    })
+  }, [goals])
 
   function formatHours(value: number) {
     const safe = clampHours(value)
@@ -105,7 +53,7 @@ export function SleepPage() {
   }
 
   useEffect(() => {
-    if (!activeGoal) return
+    if (!activeGoal || editingGoalId) return
     setGoalHours(activeGoal.goalHours ?? 7.5)
     setBedtimeRoutine(activeGoal.bedtimeRoutine ?? '')
     if (activeGoal.alarmTime) {
@@ -114,8 +62,27 @@ export function SleepPage() {
       const minutes = String(date.getMinutes()).padStart(2, '0')
       setAlarmHour(hours)
       setAlarmMinute(minutes)
+    } else {
+      setAlarmHour('')
+      setAlarmMinute('')
     }
-  }, [activeGoal])
+  }, [activeGoal, editingGoalId])
+
+  function setFormFromGoal(goal: typeof activeGoal) {
+    if (!goal) return
+    setGoalHours(goal.goalHours ?? 7.5)
+    setBedtimeRoutine(goal.bedtimeRoutine ?? '')
+    if (goal.alarmTime) {
+      const date = new Date(goal.alarmTime)
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      setAlarmHour(hours)
+      setAlarmMinute(minutes)
+    } else {
+      setAlarmHour('')
+      setAlarmMinute('')
+    }
+  }
 
   const alarmLabel = useMemo(() => {
     if (!activeGoal?.alarmTime) return { time: '—', day: 'Sem alarme' }
@@ -142,33 +109,23 @@ export function SleepPage() {
     return date.toISOString()
   }
 
-  function handleValueChange(day: string, value: string) {
-    setEntries(prev =>
-      prev.map(entry =>
-        entry.day === day ? { ...entry, value } : entry
-      )
-    )
-  }
-
-  function handleValueBlur(day: string, value: string) {
-    const normalized = normalizeHourInput(value)
-    if (!normalized) return
-    setEntries(prev =>
-      prev.map(entry =>
-        entry.day === day ? { ...entry, value: normalized } : entry
-      )
-    )
-  }
-
   async function handleSave() {
     setSaving(true)
     try {
-      const saved = await upsertGoal({
+      const payload = {
         goalHours: clampHours(goalHours),
-        averageHours: Number(average.toFixed(1)),
+        averageHours: undefined,
         bedtimeRoutine: bedtimeRoutine.trim() || undefined,
         alarmTime: buildAlarmIso(alarmHour, alarmMinute),
-      })
+      }
+      const saved = editingGoalId
+        ? await updateGoal(editingGoalId, payload)
+        : await upsertGoal(payload)
+      if (!saved) {
+        ToastAlert('Não foi possível salvar a rotina do sono', 'error')
+        return
+      }
+      setEditingGoalId(saved.id ?? null)
       setGoalHours(saved.goalHours ?? goalHours)
       setBedtimeRoutine(saved.bedtimeRoutine ?? '')
       if (saved.alarmTime) {
@@ -185,6 +142,30 @@ export function SleepPage() {
       setSaving(false)
     }
   }
+
+  async function handleDelete(id: string) {
+    await deleteGoal(id)
+    if (editingGoalId === id) {
+      setEditingGoalId(null)
+      if (activeGoal) setFormFromGoal(activeGoal)
+    }
+  }
+
+  function formatDate(value?: string | null) {
+    if (!value) return '—'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '—'
+    return date.toLocaleDateString('pt-BR')
+  }
+
+  function formatTime(value?: string | null) {
+    if (!value) return '—'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '—'
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const isEditing = Boolean(editingGoalId)
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-8 lg:px-10">
@@ -204,53 +185,33 @@ export function SleepPage() {
         <section className="rounded-[28px] bg-slate-900 p-6 text-white shadow-lg">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Seu sono na semana</h2>
+              <h2 className="text-lg font-semibold">Resumo da meta</h2>
               <p className="text-sm text-slate-300">
-                Média de {average.toFixed(1)}h e pico em {bestDay}.
+                Acompanhe sua meta ativa e ajustes recentes.
               </p>
             </div>
             <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
-              Últimos 7 dias
+              {activeGoal ? 'Meta ativa' : 'Sem meta'}
             </span>
           </div>
 
           <div className="rounded-2xl bg-gradient-to-b from-slate-800 to-slate-950 p-4">
-            <svg viewBox="0 0 100 40" className="h-32 w-full">
-              <defs>
-                <linearGradient id="sleepFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8FB3FF" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#0F172A" stopOpacity="0.1" />
-                </linearGradient>
-              </defs>
-              <path d={area} fill="url(#sleepFill)" />
-              <path
-                d={line}
-                fill="none"
-                stroke="#C7D2FE"
-                strokeWidth="1.5"
-              />
-            </svg>
-            <div className="mt-2 grid grid-cols-7 gap-2 text-center text-[10px] text-slate-400">
-              {entries.map(entry => (
-                <span key={entry.day}>{entry.label}</span>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl bg-white/10 px-4 py-3">
-              <p className="text-xs text-slate-300">Média semanal</p>
-              <p className="text-lg font-semibold">{formatHours(average)}</p>
-            </div>
-            <div className="rounded-2xl bg-white/10 px-4 py-3">
-              <p className="text-xs text-slate-300">Melhor noite</p>
-              <p className="text-lg font-semibold">
-                {bestDay} · {formatHours(bestValue)}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-white/10 px-4 py-3">
-              <p className="text-xs text-slate-300">Meta semanal</p>
-              <p className="text-lg font-semibold">{formatHours(goalHours)}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/10 px-4 py-3">
+                <p className="text-xs text-slate-300">Meta</p>
+                <p className="text-lg font-semibold">{formatHours(goalHours)}</p>
+              </div>
+              <div className="rounded-2xl bg-white/10 px-4 py-3">
+                <p className="text-xs text-slate-300">Próximo alarme</p>
+                <p className="text-lg font-semibold">{alarmLabel.time}</p>
+                <p className="text-xs text-slate-400">{alarmLabel.day}</p>
+              </div>
+              <div className="rounded-2xl bg-white/10 px-4 py-3">
+                <p className="text-xs text-slate-300">Rotina</p>
+                <p className="text-sm text-slate-100">
+                  {activeGoal?.bedtimeRoutine || 'Sem rotina definida.'}
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -260,12 +221,14 @@ export function SleepPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-widest text-slate-400">
-                  Próximo alarme
+                  {isEditing ? 'Editando meta' : 'Nova meta'}
                 </p>
-                <p className="text-3xl font-semibold text-slate-900">
-                  {alarmLabel.time}
+                <p className="text-2xl font-semibold text-slate-900">
+                  {isEditing ? 'Atualizar rotina' : 'Criar rotina'}
                 </p>
-                <p className="text-xs text-slate-400">{alarmLabel.day}</p>
+                <p className="text-xs text-slate-400">
+                  {isEditing ? 'Alterar dados da meta' : 'Defina sua meta ideal'}
+                </p>
               </div>
               <AlarmClock className="text-slate-300" />
             </div>
@@ -330,7 +293,11 @@ export function SleepPage() {
                 disabled={saving || loading}
                 className="w-full rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {saving ? 'Salvando...' : 'Salvar rotina'}
+                {saving
+                  ? 'Salvando...'
+                  : isEditing
+                    ? 'Atualizar rotina'
+                    : 'Criar rotina'}
               </button>
             </div>
           </div>
@@ -358,9 +325,12 @@ export function SleepPage() {
               <p className="text-sm font-semibold">Resumo rápido</p>
             </div>
             <div className="space-y-2 text-xs text-slate-500">
-              <p>Evite telas 40 minutos antes de dormir.</p>
-              <p>Hora ideal para deitar: 23:00.</p>
-              <p>2 noites abaixo da meta nesta semana.</p>
+              <p>Meta ativa: {formatHours(goalHours)}</p>
+              <p>Alarme: {alarmLabel.time}</p>
+              <p>
+                Última atualização:{' '}
+                {activeGoal?.updatedAt ? formatDate(activeGoal.updatedAt) : '—'}
+              </p>
             </div>
           </div>
         </aside>
@@ -369,49 +339,49 @@ export function SleepPage() {
       <section className="mt-8 rounded-[28px] bg-white p-6 shadow-sm">
         <div className="mb-4 flex flex-col gap-1">
           <h3 className="text-lg font-semibold text-slate-900">
-            Registre sua semana
+            Histórico de metas
           </h3>
           <p className="text-sm text-slate-500">
-            Digite as horas de sono por dia. O gráfico atualiza automaticamente.
+            Visualize o que já foi cadastrado e edite quando necessário.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {entries.map(entry => (
-            <div
-              key={entry.day}
-              className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-            >
-              <div>
-                <p className="text-sm font-medium text-slate-900">
-                  {entry.label}
-                </p>
-                <p className="text-xs text-slate-400">Horas dormidas</p>
+        <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <span>Criado</span>
+            <span>Atualizado</span>
+            <span>Meta</span>
+            <span>Alarme</span>
+            <span className="text-right">Ações</span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {sortedGoals.length === 0 && (
+              <div className="px-4 py-6 text-sm text-slate-500">
+                Nenhuma meta cadastrada ainda.
               </div>
-              <input
-                type="number"
-                min={0}
-                step={0.1}
-                value={entry.value}
-                onChange={event => handleValueChange(entry.day, event.target.value)}
-                onBlur={event => handleValueBlur(entry.day, event.target.value)}
-                className="w-20 rounded-xl border border-slate-200 bg-white px-2 py-1 text-right text-sm text-slate-700 focus:border-slate-400 focus:outline-none"
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
-            Média atual: <span className="font-semibold">{formatHours(average)}</span>
-          </p>
-          <button
-            onClick={handleSave}
-            disabled={saving || loading}
-            className="w-full rounded-2xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-          >
-            {saving ? 'Salvando...' : 'Salvar semana'}
-          </button>
+            )}
+            {sortedGoals.map(goal => (
+              <div
+                key={goal.id}
+                className="grid grid-cols-[1.2fr_1fr_1fr_1fr_auto] items-center gap-3 px-4 py-3 text-sm text-slate-700"
+              >
+                <span>{formatDate(goal.createdAt)}</span>
+                <span>{formatDate(goal.updatedAt)}</span>
+                <span>{formatHours(goal.goalHours)}</span>
+                <span>{formatTime(goal.alarmTime)}</span>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(goal.id)}
+                    className="flex items-center gap-1 rounded-full border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:border-rose-300"
+                  >
+                    <Trash2 size={12} />
+                    Excluir
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

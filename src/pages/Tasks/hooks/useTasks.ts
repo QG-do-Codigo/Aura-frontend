@@ -4,15 +4,10 @@ import type { CreateTaskDTO, Task } from "../types/task.types";
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const token = localStorage.getItem("token");
 
   const fetchTasks = async () => {
     try {
-      const response = await api.get("/tasks/list", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/tasks/list");
       console.log(response.data);
       setTasks(response.data);
     } catch (error) {
@@ -24,11 +19,7 @@ export const useTasks = () => {
     try {
       console.log(data);
 
-      const response = await api.post("/tasks/create", data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.post("/tasks/create", data);
       console.log("Nova tarefa criada:", response.data);
 
       setTasks((prev) => [...prev, response.data]);
@@ -39,15 +30,7 @@ export const useTasks = () => {
 
   const toggleTask = async (task: Task) => {
     try {
-      await api.patch(
-        `/tasks/${task.id}`,
-        { completed: !task.completed },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await api.patch(`/tasks/${task.id}`, { completed: !task.completed });
 
       setTasks((prev) =>
         prev.map((t) =>
@@ -61,11 +44,7 @@ export const useTasks = () => {
 
   const deleteTask = async (id: string) => {
     try {
-      await api.delete(`/tasks/delete/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/tasks/delete/${id}`);
 
       setTasks((prev) => prev.filter((t) => t.id !== id));
     } catch (error) {
@@ -75,16 +54,21 @@ export const useTasks = () => {
 
   const updateTask = async (task: Task) => {
     try {
-      await api.patch(`/tasks/update/${task.id}`, task, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.patch(`/tasks/update/${task.id}`, task);
       setTasks((prev) =>
         prev.map((t) => (t.id === task.id ? { ...t, ...task } : t))
       );
     } catch (error) {
       console.error("Erro ao atualizar tarefa:", error);
+    }
+  };
+
+  const deleteAllTasks = async () => {
+    try {
+      await api.delete("/tasks/deleteAll");
+      setTasks([]);
+    } catch (error) {
+      console.error("Erro ao deletar todas as tarefas:", error);
     }
   };
 
@@ -98,6 +82,7 @@ export const useTasks = () => {
     toggleTask,
     updateTask,
     deleteTask,
+    deleteAllTasks,
     fetchTasks,
   };
 };

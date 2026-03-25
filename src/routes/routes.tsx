@@ -11,6 +11,7 @@ import { NotesPage } from "../pages/notes/components/NotesPage";
 import { PrivateRoute } from "./PrivateRoute";
 import { ToastContainer } from "react-toastify";
 import { ShoppingListPage } from "../pages/shopping";
+import { HealthPage } from "../pages/health";
 
 function AppRoutes() {
   return (
@@ -28,8 +29,8 @@ function AppRoutes() {
             <Route path="tasks" element={<TasksPage />} />
             <Route path="notes" element={<NotesPage />} />
             <Route path="shopping" element={<ShoppingListPage />} />
-            {/* <Route path="health" element={<HealthPage />} />
-            <Route path="finance" element={<FinancePage />} />
+            <Route path="health" element={<HealthPage />} />
+            {/* <Route path="finance" element={<FinancePage />} />
             <Route path="sleep" element={<SleepPage />} />
             <Route path="ideas" element={<IdeasPage />} /> */}
           </Route>

@@ -1,34 +1,36 @@
 import { useState } from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
-import type { ShoppingItem } from '../types'
+import { Check, Trash2 } from 'lucide-react'
+import type { ShoppingItem, ShoppingItemInput } from '../types'
 import { ItemModal } from './ItemForm'
 
 interface Props {
   categoryId: string
   title: string
+  icon: string
   color: string
   buttonColor: string
   items: ShoppingItem[]
-  onToggle: (categoryId: string, itemId: string) => void
-  onAdd: (categoryId: string, itemName: string) => void
+  onToggle: (categoryId: string, itemId: string) => Promise<void>
+  onAdd: (categoryId: string, items: ShoppingItemInput[]) => Promise<void>
+  onDelete: (categoryId: string, itemId: string) => Promise<void>
 }
 
 export function CategoryCard({
   categoryId,
   title,
+  icon,
   color,
   buttonColor,
   items,
   onToggle,
   onAdd,
+  onDelete,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
-  function handleSubmit(values: string[]) {
-    values.forEach(value => {
-      onAdd(categoryId, value)
-    })
+  async function handleSubmit(values: ShoppingItemInput[]) {
+    await onAdd(categoryId, values)
     setIsOpen(false)
   }
 
@@ -36,7 +38,12 @@ export function CategoryCard({
     <>
       <div className={`${color} rounded-3xl p-6 shadow-sm`}>
         <div className="flex justify-between items-center mb-6">
-          <span className="font-semibold text-lg">{title}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl leading-none" aria-hidden>
+              {icon}
+            </span>
+            <span className="font-semibold text-lg">{title}</span>
+          </div>
           <span className="text-sm text-gray-500">{items.length} ITENS</span>
         </div>
 
@@ -44,11 +51,21 @@ export function CategoryCard({
           {items.map(item => (
             <div
               key={item.id}
-              className="flex items-center gap-3 bg-white px-4 py-3 rounded-3xl shadow-sm"
+              onClick={() => {
+                void onToggle(categoryId, item.id)
+              }}
+              className={`flex items-center gap-3 bg-white px-4 py-3 rounded-3xl shadow-sm transition ${
+                item.purchased ? 'opacity-55' : ''
+              } cursor-pointer`}
             >
               <Checkbox.Root
-                checked={item.checked}
-                onCheckedChange={() => onToggle(categoryId, item.id)}
+                checked={item.purchased}
+                onClick={event => {
+                  event.stopPropagation()
+                }}
+                onCheckedChange={() => {
+                  void onToggle(categoryId, item.id)
+                }}
                 className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
               >
                 <Checkbox.Indicator>
@@ -58,11 +75,33 @@ export function CategoryCard({
 
               <span
                 className={`text-gray-700 ${
-                  item.checked ? 'line-through opacity-50' : ''
+                  item.purchased ? 'line-through' : ''
                 }`}
               >
                 {item.name}
               </span>
+
+              <span
+                className={`ml-auto text-xs font-semibold rounded-full px-2 py-1 ${
+                  item.purchased
+                    ? 'bg-slate-100 text-slate-400'
+                    : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                Qtd: {item.quantity}
+              </span>
+
+              <button
+                type="button"
+                aria-label={`Remover ${item.name}`}
+                onClick={event => {
+                  event.stopPropagation()
+                  void onDelete(categoryId, item.id)
+                }}
+                className="ml-2 inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>

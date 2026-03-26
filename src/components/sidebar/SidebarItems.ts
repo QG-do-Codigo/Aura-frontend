@@ -7,6 +7,7 @@ import {
   Wallet,
   Moon,
   Lightbulb,
+  DoorOpen,
 } from 'lucide-react'
 
 export const sidebarItems = [
@@ -82,4 +83,13 @@ export const sidebarItems = [
     bg: 'bg-amber-100',
     indicator: 'bg-amber-500',
   },
+  {
+    id: 'Sair',
+    label: 'Sair',
+    icon: DoorOpen,
+    href: "",
+    color: 'text-amber-500',
+    bg: 'bg-amber-100',
+    indicator: 'bg-amber-500',
+  }
 ]

@@ -25,19 +25,12 @@ export const TaskAreaGrid = ({
   const grouped = groupTasksByCategory(tasks);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [modalMode, setModalMode] = useState<
-    "view" | "edit" | "delete-category"
-  >("view");
 
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [openEditForm, setOpenEditForm] = useState(false);
 
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
-
-  const tasksInCategory = selectedCategory
-    ? tasks.filter((t) => t.category === selectedCategory)
-    : [];
 
   return (
     <>

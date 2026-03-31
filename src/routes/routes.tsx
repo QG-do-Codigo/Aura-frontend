@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignIn from "../pages/auth/SignIn";
 import SignUp from "../pages/auth/SignUp";
 import { NotesPage } from "../pages/notes/components/NotesPage";
+import { IdeasPage } from "../pages/ideas";
 import { PrivateRoute } from "./PrivateRoute";
 import { ToastContainer } from "react-toastify";
 import { ShoppingListPage } from "../pages/shopping";
@@ -31,7 +32,8 @@ function AppRoutes() {
             <Route path="shopping" element={<ShoppingListPage />} />
             {/* <Route path="health" element={<HealthPage />} />
             <Route path="finance" element={<FinancePage />} />
-            <Route path="ideas" element={<IdeasPage />} /> */}
+            */}
+            <Route path="ideas" element={<IdeasPage />} />
             <Route path="sleep" element={<SleepPage />} />
           </Route>
         </Route>

@@ -7,7 +7,6 @@ import {
   Wallet,
   Moon,
   Lightbulb,
-  DoorClosed,
   DoorOpen,
 } from 'lucide-react'
 

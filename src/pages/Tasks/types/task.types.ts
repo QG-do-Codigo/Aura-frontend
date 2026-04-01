@@ -14,6 +14,7 @@ export interface Task {
   category: TaskCategory;
   completed: boolean;
   priority: number;
+  dueDate?: string;
   color: string;
 }
 
@@ -22,6 +23,7 @@ export interface CreateTaskDTO {
   description: string;
   category: TaskCategory;
   priority: number;
+  dueDate?: string;
   color: string;
   completed: boolean;
 }

@@ -23,7 +23,7 @@ export function TaskListModal({ tasks, open, onOpenChange, onSave }: Props) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-white text-slate-600 rounded-3xl p-6 flex flex-col gap-6 max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-white text-slate-600 rounded-3xl p-6 flex flex-col gap-6 max-h-[80vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
               Lista de Tarefas
@@ -41,19 +41,17 @@ export function TaskListModal({ tasks, open, onOpenChange, onSave }: Props) {
               className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 cursor-pointer transition"
             >
               <span
-                className={`font-medium ${
-                  task.completed ? "line-through text-gray-400" : ""
-                }`}
+                className={`font-medium ${task.completed ? "line-through text-gray-400" : ""
+                  }`}
               >
                 {task.title}
               </span>
 
               <span
-                className={`text-sm px-3 py-1 rounded-full ${
-                  task.completed
+                className={`text-sm px-3 py-1 rounded-full ${task.completed
                     ? "bg-green-100 text-green-600"
                     : "bg-gray-200 text-gray-600"
-                }`}
+                  }`}
               >
                 {task.completed ? "Concluída" : "Pendente"}
               </span>

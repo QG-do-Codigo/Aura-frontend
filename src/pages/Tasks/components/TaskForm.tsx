@@ -67,16 +67,24 @@ export const TaskForm = ({
   const [priority, setPriority] = useState<TaskPriority>(
     (initialData?.priority as TaskPriority) || 1
   );
+  const [dueDate, setDueDate] = useState(
+    initialData?.dueDate
+      ? new Date(initialData.dueDate).toISOString().slice(0, 16)
+      : ""
+  );
   const [selectedColor, setSelectedColor] = useState(
     noteColors.find(c => c.hex === initialData?.color) || noteColors[0]
   );
+  const [dueDateError, setDueDateError] = useState("");
 
   const resetForm = () => {
     setTitle("");
     setDescription("");
     setCategory("");
     setPriority(1);
+    setDueDate("");
     setSelectedColor(noteColors[0]);
+    setDueDateError("");
   };
 
   useEffect(() => {
@@ -85,12 +93,18 @@ export const TaskForm = ({
       setDescription(initialData?.description || "");
       setCategory(initialData?.category || "");
       setPriority((initialData?.priority as TaskPriority) || 1);
+      setDueDate(
+        initialData?.dueDate
+          ? new Date(initialData.dueDate).toISOString().slice(0, 16)
+          : ""
+      );
       setSelectedColor(
         noteColors.find((c) => c.hex === initialData?.color) || noteColors[0]
       );
     } else {
       resetForm();
     }
+    setDueDateError("");
   }, [open, isEditing, initialData]);
 
   const isValidCategory = (value: any): value is TaskCategory => {
@@ -100,7 +114,13 @@ export const TaskForm = ({
   const handleSubmit = () => {
     if (!title.trim() || !isValidCategory(category)) return;
 
-    const data = {
+    const selectedDueDate = dueDate ? new Date(dueDate) : null;
+    if (selectedDueDate && selectedDueDate.getTime() < Date.now()) {
+      setDueDateError("A data de conclusão não pode ser no passado.");
+      return;
+    }
+
+    const baseData: Omit<Task, "id"> = {
       title: title.trim(),
       description: description.trim(),
       category,
@@ -109,7 +129,16 @@ export const TaskForm = ({
       completed: initialData?.completed ?? false,
     };
 
-    onSubmit(data);
+    if (selectedDueDate) {
+      baseData.dueDate = selectedDueDate.toISOString();
+    }
+
+    const data = isEditing
+      ? { ...baseData, id: initialData?.id }
+      : baseData;
+
+    onSubmit(data as Task | Omit<Task, "id">);
+    setDueDateError("");
 
     if (!isEditing) {
       resetForm();
@@ -127,7 +156,7 @@ export const TaskForm = ({
         }
       }}
     >
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto rounded-2xl">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Tarefa" : "Nova Tarefa"}
@@ -159,7 +188,7 @@ export const TaskForm = ({
               placeholder="Descrição (opcional)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+              className="min-h-[140px] resize-none rounded-[8px] border-slate-200 bg-slate-50/50 px-6 py-4"
             />
           </div>
 
@@ -180,6 +209,23 @@ export const TaskForm = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="dueDate">Data de conclusão</Label>
+            <Input
+              id="dueDate"
+              type="datetime-local"
+              value={dueDate}
+              onChange={(e) => {
+                setDueDate(e.target.value);
+                if (dueDateError) setDueDateError("");
+              }}
+              className="rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+            />
+            {dueDateError ? (
+              <p className="text-sm text-red-600">{dueDateError}</p>
+            ) : null}
           </div>
 
           <div className="grid gap-2">
@@ -234,7 +280,7 @@ export const TaskForm = ({
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={!title.trim() || !category.trim()}
+            disabled={!title.trim() || !category.trim() || !dueDate}
             className="cursor-pointer rounded-full bg-blue-600 text-white hover:bg-blue-700"
           >
             {isEditing ? "Salvar alterações" : "Criar tarefa"}

@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { sidebarItems } from './SidebarItems'
 import { SidebarItem } from './SidebarItem'
+import { LogoutConfirmDialog } from './LogoutConfirmDialog'
 import { Button } from '../UI/button'
 import { Menu, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../UI/utils'
+import { authService } from '../../services/auth/authService'
 
 export const Sidebar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false)
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -17,12 +20,7 @@ export const Sidebar = () => {
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    // se você salva token:
-    localStorage.removeItem('token')
-
-    // ou se quiser limpar tudo:
-    // localStorage.clear()
-
+    authService.LogOut()
     navigate('/login')
   }
 
@@ -38,17 +36,30 @@ export const Sidebar = () => {
           {sidebarItems.map(item => {
             const isActive = activeTab === item.id
 
+            if (item.id === 'Sair') {
+              return (
+                <LogoutConfirmDialog
+                  key={item.id}
+                  open={isLogoutOpen}
+                  onOpenChange={setIsLogoutOpen}
+                  onConfirm={handleLogout}
+                  trigger={
+                    <SidebarItem
+                      {...item}
+                      isActive={isActive}
+                      onClick={() => setIsLogoutOpen(true)}
+                    />
+                  }
+                />
+              )
+            }
+
             return (
               <SidebarItem
                 key={item.id}
                 {...item}
                 isActive={isActive}
                 onClick={() => {
-                  if (item.id === 'Sair') {
-                    handleLogout()
-                    return
-                  }
-
                   setActiveTab(item.id)
                   navigate(item.href)
                 }}
@@ -108,18 +119,33 @@ export const Sidebar = () => {
               {sidebarItems.map(item => {
                 const isActive = activeTab === item.id
 
+                if (item.id === 'Sair') {
+                  return (
+                    <LogoutConfirmDialog
+                      key={item.id}
+                      open={isLogoutOpen}
+                      onOpenChange={setIsLogoutOpen}
+                      onConfirm={handleLogout}
+                      trigger={
+                        <SidebarItem
+                          {...item}
+                          isActive={isActive}
+                          onClick={() => {
+                            setIsLogoutOpen(true)
+                            setIsMenuOpen(false)
+                          }}
+                        />
+                      }
+                    />
+                  )
+                }
+
                 return (
                   <SidebarItem
                     key={item.id}
                     {...item}
                     isActive={isActive}
                     onClick={() => {
-                      if (item.id === 'Sair') {
-                        handleLogout()
-                        setIsMenuOpen(false)
-                        return
-                      }
-
                       setActiveTab(item.id)
                       navigate(item.href)
                       setIsMenuOpen(false)

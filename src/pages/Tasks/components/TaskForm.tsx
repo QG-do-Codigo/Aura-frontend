@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { Task } from "../types/task.types";
+import { useEffect, useState } from "react";
+import type { Task, TaskCategory } from "../types/task.types";
 
 import {
   Dialog,
@@ -15,15 +15,30 @@ import { Button } from "../../../components/UI/button";
 import { Input } from "../../../components/UI/input";
 import { Textarea } from "../../../components/UI/textarea";
 import { Label } from "../../../components/UI/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/UI/select";
 import { cn } from "../../../components/surface";
 
 const noteColors = [
-  { name: "red", class: "bg-[var(--note-red)]" },
-  { name: "green", class: "bg-[var(--note-green)]" },
-  { name: "blue", class: "bg-[var(--note-blue)]" },
-  { name: "yellow", class: "bg-[var(--note-yellow)]" },
-  { name: "purple", class: "bg-[var(--note-purple)]" },
+  { name: "red", class: "bg-[var(--note-red)]", hex: "#fecaca" },
+  { name: "green", class: "bg-[var(--note-green)]", hex: "#bbf7d0" },
+  { name: "blue", class: "bg-[var(--note-blue)]", hex: "#bfdbfe" },
+  { name: "yellow", class: "bg-[var(--note-yellow)]", hex: "#fef08a" },
+  { name: "purple", class: "bg-[var(--note-purple)]", hex: "#ddd6fe" },
 ];
+
+const taskCategories: TaskCategory[] = [
+  "COMPRAS",
+  "AFAZERES",
+  "ESTUDOS",
+  "TRABALHO",
+  "FINANCAS",
+  "SAUDE",
+  "LAZER", 
+];
+
+const taskPriorities = [1, 2, 3, 4, 5] as const;
+
+type TaskPriority = (typeof taskPriorities)[number];
 
 interface TaskFormProps {
   open: boolean;
@@ -40,36 +55,78 @@ export const TaskForm = ({
   onSubmit,
   initialData,
   isEditing = false,
+  onClose,
 }: TaskFormProps) => {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [category, setCategory] = useState(initialData?.category || "");
-  const [priority, setPriority] = useState(initialData?.priority || 1);
+  const [category, setCategory] = useState<TaskCategory | "">(
+    initialData?.category || ""
+  );
+  const [priority, setPriority] = useState<TaskPriority>(
+    (initialData?.priority as TaskPriority) || 1
+  );
   const [selectedColor, setSelectedColor] = useState(
-    initialData?.color || noteColors[0].class
+    noteColors.find(c => c.hex === initialData?.color) || noteColors[0]
   );
 
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setCategory("");
+    setPriority(1);
+    setSelectedColor(noteColors[0]);
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      setTitle(initialData?.title || "");
+      setDescription(initialData?.description || "");
+      setCategory(initialData?.category || "");
+      setPriority((initialData?.priority as TaskPriority) || 1);
+      setSelectedColor(
+        noteColors.find((c) => c.hex === initialData?.color) || noteColors[0]
+      );
+    } else {
+      resetForm();
+    }
+  }, [open, isEditing, initialData]);
+
+  const isValidCategory = (value: any): value is TaskCategory => {
+    return value !== "";
+  };
+
   const handleSubmit = () => {
-    if (!title.trim() || !category.trim()) return;
+    if (!title.trim() || !isValidCategory(category)) return;
 
     const data = {
       title: title.trim(),
       description: description.trim(),
-      category: category.trim(),
+      category,
       priority,
-      color: selectedColor,
+      color: selectedColor.hex,
       completed: initialData?.completed ?? false,
-      ...(initialData?.id && { id: initialData.id }),
     };
 
     onSubmit(data);
-    onOpenChange(false);
+
+    if (!isEditing) {
+      resetForm();
+      onOpenChange(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        onOpenChange(value);
+        if (!value) {
+          onClose?.();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
           <DialogTitle>
@@ -108,26 +165,40 @@ export const TaskForm = ({
 
           <div className="grid gap-2">
             <Label htmlFor="category">Categoria</Label>
-            <Input
-              id="category"
-              placeholder="Categoria"
+            <Select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
-            />
+              onValueChange={(value) => setCategory(value as TaskCategory)}
+            >
+              <SelectTrigger id="category" className="rounded-[8px] border border-slate-200 !bg-white px-4 text-slate-900 shadow-sm transition hover:border-slate-300 dark:border-slate-700 dark:!bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent className="!bg-white text-slate-900 dark:!bg-slate-900 dark:text-slate-100">
+                {taskCategories.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="priority">Prioridade (1-5)</Label>
-            <Input
-              id="priority"
-              type="number"
-              min={1}
-              max={5}
-              value={priority}
-              onChange={(e) => setPriority(Number(e.target.value))}
-              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
-            />
+            <Label htmlFor="priority">Prioridade</Label>
+            <Select
+              value={String(priority)}
+              onValueChange={(value) => setPriority(Number(value) as TaskPriority)}
+            >
+              <SelectTrigger id="priority" className="rounded-[8px] border border-slate-200 !bg-white px-4 text-slate-900 shadow-sm transition hover:border-slate-300 dark:border-slate-700 dark:!bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500">
+                <SelectValue placeholder="Selecione a prioridade" />
+              </SelectTrigger>
+              <SelectContent className="!bg-white text-slate-900 dark:!bg-slate-900 dark:text-slate-100">
+                {taskPriorities.map((value) => (
+                  <SelectItem key={value} value={String(value)}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
@@ -138,12 +209,12 @@ export const TaskForm = ({
                   key={color.name}
                   className={cn(
                     "w-10 h-10 rounded-full cursor-pointer border-2 transition-all",
-                    selectedColor === color.class
+                    selectedColor.name === color.name
                       ? "border-blue-600 scale-110 shadow-lg"
                       : "border-transparent hover:scale-105",
                     color.class
                   )}
-                  onClick={() => setSelectedColor(color.class)}
+                  onClick={() => setSelectedColor(color)}
                 />
               ))}
             </div>

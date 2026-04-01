@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useTasks } from "./hooks/useTasks";
+import { useTasks } from "../../services/tasks/tasksService";
 import { TaskAreaGrid } from "./components/TaskAreaGrid";
 import { TaskForm } from "./components/TaskForm";
 import { TaskListModal } from "./components/TaskListModal";

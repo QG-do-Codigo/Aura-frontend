@@ -32,11 +32,6 @@ function AppRoutes() {
             <Route path="shopping" element={<ShoppingListPage />} />
             <Route path="finance" element={<FinancePage />} />
             <Route path="health" element={<HealthPage />} />
-            {/* <Route path="finance" element={<FinancePage />} />
-            <Route path="sleep" element={<SleepPage />} />
-            {/* <Route path="health" element={<HealthPage />} />
-            <Route path="finance" element={<FinancePage />} />
-            */}
             <Route path="ideas" element={<IdeasPage />} />
             <Route path="sleep" element={<SleepPage />} />
           </Route>

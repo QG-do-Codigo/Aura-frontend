@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { Task } from "../types/task.types";
+import { useEffect, useState } from "react";
+import type { Task, TaskCategory } from "../types/task.types";
 
 import {
   Dialog,
@@ -15,15 +15,30 @@ import { Button } from "../../../components/UI/button";
 import { Input } from "../../../components/UI/input";
 import { Textarea } from "../../../components/UI/textarea";
 import { Label } from "../../../components/UI/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/UI/select";
 import { cn } from "../../../components/surface";
 
 const noteColors = [
-  { name: "red", class: "bg-[var(--note-red)]" },
-  { name: "green", class: "bg-[var(--note-green)]" },
-  { name: "blue", class: "bg-[var(--note-blue)]" },
-  { name: "yellow", class: "bg-[var(--note-yellow)]" },
-  { name: "purple", class: "bg-[var(--note-purple)]" },
+  { name: "red", class: "bg-[var(--note-red)]", hex: "#fecaca" },
+  { name: "green", class: "bg-[var(--note-green)]", hex: "#bbf7d0" },
+  { name: "blue", class: "bg-[var(--note-blue)]", hex: "#bfdbfe" },
+  { name: "yellow", class: "bg-[var(--note-yellow)]", hex: "#fef08a" },
+  { name: "purple", class: "bg-[var(--note-purple)]", hex: "#ddd6fe" },
 ];
+
+const taskCategories: TaskCategory[] = [
+  "COMPRAS",
+  "AFAZERES",
+  "ESTUDOS",
+  "TRABALHO",
+  "FINANCAS",
+  "SAUDE",
+  "LAZER",
+];
+
+const taskPriorities = [1, 2, 3, 4, 5] as const;
+
+type TaskPriority = (typeof taskPriorities)[number];
 
 interface TaskFormProps {
   open: boolean;
@@ -40,37 +55,108 @@ export const TaskForm = ({
   onSubmit,
   initialData,
   isEditing = false,
+  onClose,
 }: TaskFormProps) => {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [category, setCategory] = useState(initialData?.category || "");
-  const [priority, setPriority] = useState(initialData?.priority || 1);
-  const [selectedColor, setSelectedColor] = useState(
-    initialData?.color || noteColors[0].class
+  const [category, setCategory] = useState<TaskCategory | "">(
+    initialData?.category || ""
   );
+  const [priority, setPriority] = useState<TaskPriority>(
+    (initialData?.priority as TaskPriority) || 1
+  );
+  const [dueDate, setDueDate] = useState(
+    initialData?.dueDate
+      ? new Date(initialData.dueDate).toISOString().slice(0, 16)
+      : ""
+  );
+  const [selectedColor, setSelectedColor] = useState(
+    noteColors.find(c => c.hex === initialData?.color) || noteColors[0]
+  );
+  const [dueDateError, setDueDateError] = useState("");
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setCategory("");
+    setPriority(1);
+    setDueDate("");
+    setSelectedColor(noteColors[0]);
+    setDueDateError("");
+  };
+
+  useEffect(() => {
+    if (isEditing) {
+      setTitle(initialData?.title || "");
+      setDescription(initialData?.description || "");
+      setCategory(initialData?.category || "");
+      setPriority((initialData?.priority as TaskPriority) || 1);
+      setDueDate(
+        initialData?.dueDate
+          ? new Date(initialData.dueDate).toISOString().slice(0, 16)
+          : ""
+      );
+      setSelectedColor(
+        noteColors.find((c) => c.hex === initialData?.color) || noteColors[0]
+      );
+    } else {
+      resetForm();
+    }
+    setDueDateError("");
+  }, [open, isEditing, initialData]);
+
+  const isValidCategory = (value: any): value is TaskCategory => {
+    return value !== "";
+  };
 
   const handleSubmit = () => {
-    if (!title.trim() || !category.trim()) return;
+    if (!title.trim() || !isValidCategory(category)) return;
 
-    const data = {
+    const selectedDueDate = dueDate ? new Date(dueDate) : null;
+    if (selectedDueDate && selectedDueDate.getTime() < Date.now()) {
+      setDueDateError("A data de conclusão não pode ser no passado.");
+      return;
+    }
+
+    const baseData: Omit<Task, "id"> = {
       title: title.trim(),
       description: description.trim(),
-      category: category.trim(),
+      category,
       priority,
-      color: selectedColor,
+      color: selectedColor.hex,
       completed: initialData?.completed ?? false,
-      ...(initialData?.id && { id: initialData.id }),
     };
 
-    onSubmit(data);
-    onOpenChange(false);
+    if (selectedDueDate) {
+      baseData.dueDate = selectedDueDate.toISOString();
+    }
+
+    const data = isEditing
+      ? { ...baseData, id: initialData?.id }
+      : baseData;
+
+    onSubmit(data as Task | Omit<Task, "id">);
+    setDueDateError("");
+
+    if (!isEditing) {
+      resetForm();
+      onOpenChange(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto rounded-2xl">
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        onOpenChange(value);
+        if (!value) {
+          onClose?.();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto rounded-2xl custom-scrollbar">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Tarefa" : "Nova Tarefa"}
@@ -102,32 +188,63 @@ export const TaskForm = ({
               placeholder="Descrição (opcional)"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+              className="min-h-[140px] resize-none rounded-[8px] border-slate-200 bg-slate-50/50 px-6 py-4"
             />
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="category">Categoria</Label>
-            <Input
-              id="category"
-              placeholder="Categoria"
+            <Select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
-            />
+              onValueChange={(value) => setCategory(value as TaskCategory)}
+            >
+              <SelectTrigger id="category" className="rounded-[8px] border border-slate-200 !bg-white px-4 text-slate-900 shadow-sm transition hover:border-slate-300 dark:border-slate-700 dark:!bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent className="!bg-white text-slate-900 dark:!bg-slate-900 dark:text-slate-100">
+                {taskCategories.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="priority">Prioridade (1-5)</Label>
+            <Label htmlFor="dueDate">Data de conclusão</Label>
             <Input
-              id="priority"
-              type="number"
-              min={1}
-              max={5}
-              value={priority}
-              onChange={(e) => setPriority(Number(e.target.value))}
-              className=" rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
+              id="dueDate"
+              type="datetime-local"
+              value={dueDate}
+              onChange={(e) => {
+                setDueDate(e.target.value);
+                if (dueDateError) setDueDateError("");
+              }}
+              className="rounded-[8px] border-slate-200 bg-slate-50/50 px-6"
             />
+            {dueDateError ? (
+              <p className="text-sm text-red-600">{dueDateError}</p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="priority">Prioridade</Label>
+            <Select
+              value={String(priority)}
+              onValueChange={(value) => setPriority(Number(value) as TaskPriority)}
+            >
+              <SelectTrigger id="priority" className="rounded-[8px] border border-slate-200 !bg-white px-4 text-slate-900 shadow-sm transition hover:border-slate-300 dark:border-slate-700 dark:!bg-slate-900 dark:text-slate-100 dark:hover:border-slate-500">
+                <SelectValue placeholder="Selecione a prioridade" />
+              </SelectTrigger>
+              <SelectContent className="!bg-white text-slate-900 dark:!bg-slate-900 dark:text-slate-100">
+                {taskPriorities.map((value) => (
+                  <SelectItem key={value} value={String(value)}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">
@@ -138,12 +255,12 @@ export const TaskForm = ({
                   key={color.name}
                   className={cn(
                     "w-10 h-10 rounded-full cursor-pointer border-2 transition-all",
-                    selectedColor === color.class
+                    selectedColor.name === color.name
                       ? "border-blue-600 scale-110 shadow-lg"
                       : "border-transparent hover:scale-105",
                     color.class
                   )}
-                  onClick={() => setSelectedColor(color.class)}
+                  onClick={() => setSelectedColor(color)}
                 />
               ))}
             </div>
@@ -163,7 +280,7 @@ export const TaskForm = ({
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={!title.trim() || !category.trim()}
+            disabled={!title.trim() || !category.trim() || !dueDate}
             className="cursor-pointer rounded-full bg-blue-600 text-white hover:bg-blue-700"
           >
             {isEditing ? "Salvar alterações" : "Criar tarefa"}

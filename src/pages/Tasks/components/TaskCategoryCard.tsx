@@ -10,6 +10,14 @@ interface Props {
   onDelete?: (task: Task) => void;
 }
 
+const noteColorClassMap: Record<string, string> = {
+  "#fecaca": "bg-[var(--note-red)]",
+  "#bbf7d0": "bg-[var(--note-green)]",
+  "#bfdbfe": "bg-[var(--note-blue)]",
+  "#fef08a": "bg-[var(--note-yellow)]",
+  "#ddd6fe": "bg-[var(--note-purple)]",
+};
+
 export const TaskCategoryCard = ({
   category,
   tasks,
@@ -21,7 +29,10 @@ export const TaskCategoryCard = ({
   const total = tasks.length;
   const progress = total === 0 ? 0 : (completed / total) * 100;
 
-  const colorClass = tasks[0]?.color || "bg-gray-200";
+  const rawColor = tasks[0]?.color;
+  const colorClass = rawColor
+    ? noteColorClassMap[rawColor] ?? rawColor
+    : "bg-gray-200";
 
   const firstTask = tasks[0];
 

@@ -1,21 +1,28 @@
 import { useEffect, useState } from "react";
-import { useTasks } from "./hooks/useTasks";
+import { useTasks } from "../../services/tasks/tasksService";
 import { TaskAreaGrid } from "./components/TaskAreaGrid";
 import { TaskForm } from "./components/TaskForm";
-import { TaskListModal } from "./components/TaskListModal";
 
-export interface Tasks {
-  title: string;
-  description: string;
-  category: string;
-  completed: boolean;
-  priority: number;
-  color?: string;
-  id: string;
-}
+const taskCategories = [
+  "COMPRAS",
+  "AFAZERES",
+  "ESTUDOS",
+  "TRABALHO",
+  "FINANCAS",
+  "SAUDE",
+  "LAZER",
+] as const;
 
 export const TasksPage = () => {
-  const { tasks, createTask, updateTask, toggleTask, deleteTask } = useTasks();
+  const {
+    tasks,
+    createTask,
+    updateTask,
+    toggleTask,
+    deleteTask,
+    fetchTasks,
+    fetchTasksByCategory,
+  } = useTasks();
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [openNewTaskForm, setOpenNewTaskForm] = useState(false);
@@ -26,6 +33,27 @@ export const TasksPage = () => {
       localStorage.setItem("token", token);
     }
   }, [token]);
+
+  const handleCategoryChange = async (category: string) => {
+    const nextCategory = selectedCategory === category ? null : category;
+    setSelectedCategory(nextCategory);
+
+    if (!nextCategory) {
+      await fetchTasks();
+      return;
+    }
+
+    await fetchTasksByCategory(nextCategory);
+  };
+
+  const handleCreateTask = async (data: Parameters<typeof createTask>[0]) => {
+    const newTask = await createTask(data);
+    if (!selectedCategory || !newTask) return;
+
+    if (newTask.category !== selectedCategory) {
+      await fetchTasksByCategory(selectedCategory);
+    }
+  };
 
   return (
     <div className="p-8 min-h-screen bg-gray-50 text-gray-800 font-sans">
@@ -48,30 +76,35 @@ export const TasksPage = () => {
           </button>
         </div>
 
-        {/* card */}
-        <div className=" ">
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+          {taskCategories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => handleCategoryChange(category)}
+              className={`rounded-full px-4 py-2 transition font-semibold ${selectedCategory === category
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div>
           <TaskAreaGrid
             tasks={tasks}
-            onOpenCategory={(cat) => setSelectedCategory(cat)}
-            createTask={createTask}
             updateTask={updateTask}
             deleteTask={deleteTask}
             toggleTask={toggleTask}
           />
         </div>
 
-        {/* modals */}
-        <TaskListModal
-          tasks={tasks.filter((t) => t.category === selectedCategory)}
-          open={!!selectedCategory}
-          onOpenChange={() => setSelectedCategory(null)}
-          onSave={updateTask}
-        />
-
         <TaskForm
           open={openNewTaskForm}
           onOpenChange={setOpenNewTaskForm}
-          onSubmit={createTask}
+          onSubmit={handleCreateTask}
           onClose={() => setOpenNewTaskForm(false)}
         />
       </div>

@@ -1,20 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import {
-  BookOpen,
-  Camera,
-  Heart,
-  Home,
-  Lightbulb,
-  Moon,
-  Palette,
-  Plus,
-  Rocket,
-  Sparkles,
-  Star,
-  Sun,
-  Target,
-} from 'lucide-react'
+import { Lightbulb, Plus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -26,40 +12,19 @@ import {
 import { Button } from '../../../components/UI/button'
 import { Input } from '../../../components/UI/input'
 import { Textarea } from '../../../components/UI/textarea'
-import type { Idea } from '../types'
+import type { Idea, IdeaCategory, IdeaFormData } from '../types'
+import { getIdeaCategoryMeta } from '../categoryMeta'
+import { ToastAlert } from '../../../utils/toastAlert'
 
-const COLORS = ['#EE9A9A', '#7EDCA3', '#89B7E6', '#EBD67A', '#AEA0E6']
 const TITLE_MAX_LENGTH = 36
 const CONTENT_MAX_LENGTH = 320
-const CATEGORIES = [
-  'IDEIA DE NEGOCIO',
-  'PROJETO PESSOAL',
-  'CASA',
-  'APRENDIZADO',
-  'VIAGEM',
-  'SAUDE E BEM-ESTAR',
-]
-
-const ICONS = [
-  { id: 'lightbulb', Icon: Lightbulb, color: 'text-amber-500' },
-  { id: 'star', Icon: Star, color: 'text-amber-400' },
-  { id: 'heart', Icon: Heart, color: 'text-rose-400' },
-  { id: 'home', Icon: Home, color: 'text-emerald-500' },
-  { id: 'camera', Icon: Camera, color: 'text-slate-500' },
-  { id: 'book', Icon: BookOpen, color: 'text-orange-400' },
-  { id: 'palette', Icon: Palette, color: 'text-fuchsia-500' },
-  { id: 'target', Icon: Target, color: 'text-sky-500' },
-  { id: 'rocket', Icon: Rocket, color: 'text-red-500' },
-  { id: 'sparkles', Icon: Sparkles, color: 'text-yellow-500' },
-  { id: 'sun', Icon: Sun, color: 'text-amber-500' },
-  { id: 'moon', Icon: Moon, color: 'text-indigo-500' },
-]
 
 interface IdeaDialogProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   initialData?: Idea | null
-  onSubmit: (idea: Idea) => void | Promise<void>
+  categories: IdeaCategory[]
+  onSubmit: (data: IdeaFormData) => void | Promise<void>
   triggerLabel?: string
   triggerClassName?: string
 }
@@ -68,6 +33,7 @@ export function IdeaDialog({
   open: controlledOpen,
   onOpenChange,
   initialData,
+  categories,
   onSubmit,
   triggerLabel = 'Nova ideia',
   triggerClassName,
@@ -80,43 +46,48 @@ export function IdeaDialog({
 
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [content, setContent] = useState(initialData?.content ?? '')
-  const [selectedColor, setSelectedColor] = useState(
-    initialData?.color ?? COLORS[0]
-  )
-  const [category, setCategory] = useState(CATEGORIES[0])
-  const [tags, setTags] = useState('')
-  const [selectedIconId, setSelectedIconId] = useState(ICONS[0].id)
+  const [categoryId, setCategoryId] = useState(initialData?.categoryId ?? '')
+
+  const categoriesWithFallback = useMemo(() => categories ?? [], [categories])
+  const initialDataId = initialData?.id ?? null
+  const selectedCategoryName = useMemo(() => {
+    return categoriesWithFallback.find(item => item.id === categoryId)?.name
+  }, [categoriesWithFallback, categoryId])
+
+  const { Icon: CategoryIcon, iconClassName: categoryIconClassName } =
+    getIdeaCategoryMeta(selectedCategoryName)
 
   useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title)
-      setContent(initialData.content)
-      setSelectedColor(initialData.color)
-      setCategory(initialData.category ?? CATEGORIES[0])
-      setTags(initialData.tags?.join(', ') ?? '')
-      const iconMatch = ICONS.find(item => item.Icon === initialData.icon)
-      if (iconMatch) setSelectedIconId(iconMatch.id)
+    if (!initialData) return
+    setTitle(initialData.title)
+    setContent(initialData.content)
+    setCategoryId(initialData.categoryId)
+  }, [initialDataId])
+
+  useEffect(() => {
+    if (!initialData && !categoryId && categoriesWithFallback.length > 0) {
+      setCategoryId(categoriesWithFallback[0].id)
     }
-  }, [initialData])
+  }, [categoriesWithFallback, categoryId, initialData])
 
   async function handleSubmit() {
-    if (!title.trim() || !content.trim()) return
-    if (title.trim().length > TITLE_MAX_LENGTH) return
-    if (content.trim().length > CONTENT_MAX_LENGTH) return
+    if (!title.trim() || !content.trim() || !categoryId.trim()) {
+      ToastAlert('Preencha título, descrição e categoria.', 'error')
+      return
+    }
+    if (title.trim().length > TITLE_MAX_LENGTH) {
+      ToastAlert(`Título deve ter no máximo ${TITLE_MAX_LENGTH} caracteres.`, 'error')
+      return
+    }
+    if (content.trim().length > CONTENT_MAX_LENGTH) {
+      ToastAlert(`Descrição deve ter no máximo ${CONTENT_MAX_LENGTH} caracteres.`, 'error')
+      return
+    }
 
-    const iconMatch = ICONS.find(item => item.id === selectedIconId)
-    const idea: Idea = {
-      id: initialData?.id ?? '',
+    const idea: IdeaFormData = {
       title: title.trim(),
       content: content.trim(),
-      color: selectedColor,
-      date: '',
-      category,
-      tags: tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(Boolean),
-      icon: iconMatch?.Icon ?? Lightbulb,
+      categoryId: categoryId.trim(),
     }
 
     try {
@@ -125,6 +96,7 @@ export function IdeaDialog({
 
       setTitle('')
       setContent('')
+      setCategoryId(categoriesWithFallback[0]?.id ?? '')
     } catch {
       // Error feedback is handled by the hook/service layer.
     }
@@ -190,75 +162,44 @@ export function IdeaDialog({
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Categoria
             </p>
-            <div className="relative">
-              <select
-                value={category}
-                onChange={event => setCategory(event.target.value)}
-                className="h-12 w-full appearance-none rounded-[14px] border border-slate-200 bg-white px-4 pr-10 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none"
-              >
-                {CATEGORIES.map(item => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                ▾
-              </span>
-            </div>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                Icone
-              </p>
-              <div className="grid grid-cols-6 gap-2">
-                {ICONS.map(({ id, Icon, color }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setSelectedIconId(id)}
-                    className={`grid h-10 w-10 place-items-center rounded-xl border ${
-                      selectedIconId === id
-                        ? 'border-orange-400 bg-orange-50 text-orange-500'
-                        : 'border-slate-200 bg-white text-slate-500'
-                    }`}
-                    aria-pressed={selectedIconId === id}
+            {initialData ? (
+              <div className="flex items-center gap-3 rounded-[14px] border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-white border border-slate-200">
+                  <CategoryIcon size={16} className={categoryIconClassName} />
+                </span>
+                <span>{selectedCategoryName ?? 'Categoria'}</span>
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <select
+                    value={categoryId}
+                    onChange={event => setCategoryId(event.target.value)}
+                    className="h-12 w-full appearance-none rounded-[14px] border border-slate-200 bg-white px-4 pr-10 text-sm font-semibold text-slate-700 shadow-sm focus:outline-none"
+                    disabled={categoriesWithFallback.length === 0}
                   >
-                    <Icon
-                      size={16}
-                      className={
-                        selectedIconId === id ? 'text-orange-500' : color
-                      }
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                Cor do card
-              </p>
-              <div className="grid grid-cols-6 gap-2">
-                {COLORS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setSelectedColor(color)}
-                    style={{ backgroundColor: color }}
-                    className={`h-10 w-10 rounded-xl border-2 transition ${
-                      selectedColor === color
-                        ? 'border-slate-400'
-                        : 'border-transparent'
-                    }`}
-                    aria-label={`Selecionar cor ${color}`}
-                    aria-pressed={selectedColor === color}
-                  />
-                ))}
-              </div>
-            </div>
+                    {categoriesWithFallback.length === 0 ? (
+                      <option value="">Carregando categorias...</option>
+                    ) : (
+                      categoriesWithFallback.map(item => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    ▾
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-50 border border-slate-200">
+                    <CategoryIcon size={16} className={categoryIconClassName} />
+                  </span>
+                  <span>Ícone automático pela categoria</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

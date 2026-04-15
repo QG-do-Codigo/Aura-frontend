@@ -1,16 +1,51 @@
 import { Lightbulb } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { DeleteIdeaDialog } from './DeleteIdeaDialog'
 import { IdeaDialog } from './IdeaFormDialog'
 import { IdeasGrid } from './IdeasGrid'
-import { ideasMock } from '../mocks/ideasMock'
+import { ideasService } from '../../../services/ideas/ideasService'
+import type { Idea, IdeaCategory, IdeaFormData } from '../types'
+import { ToastAlert } from '../../../utils/toastAlert'
 
 export function IdeasPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [action, setAction] = useState<'edit' | 'delete' | null>(null)
 
-  const ideas = ideasMock
+  const [ideas, setIdeas] = useState<Idea[]>([])
+  const [categories, setCategories] = useState<IdeaCategory[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const categoriesById = useMemo(() => {
+    return Object.fromEntries(categories.map(category => [category.id, category.name]))
+  }, [categories])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      try {
+        const [categoriesData, ideasData] = await Promise.all([
+          ideasService.listCategories(),
+          ideasService.listIdeas(),
+        ])
+
+        if (cancelled) return
+        setCategories(categoriesData)
+        setIdeas(ideasData)
+      } catch {
+        if (!cancelled) ToastAlert('Erro ao carregar ideias.', 'error')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const selectedIdea = ideas.find(idea => idea.id === selectedId) ?? null
 
@@ -27,6 +62,39 @@ export function IdeasPage() {
   function clearSelection() {
     setSelectedId(null)
     setAction(null)
+  }
+
+  async function handleCreate(data: IdeaFormData) {
+    try {
+      const created = await ideasService.createIdea(data)
+      setIdeas(prev => [created, ...prev])
+      ToastAlert('Ideia cadastrada com sucesso!', 'success')
+    } catch {
+      ToastAlert('Erro ao cadastrar ideia.', 'error')
+    }
+  }
+
+  async function handleUpdate(data: IdeaFormData) {
+    if (!selectedIdea) return
+    try {
+      const updated = await ideasService.updateIdea(selectedIdea.id, data)
+      setIdeas(prev =>
+        prev.map(idea => (idea.id === updated.id ? updated : idea))
+      )
+      ToastAlert('Ideia atualizada com sucesso!', 'success')
+    } catch {
+      ToastAlert('Erro ao atualizar ideia.', 'error')
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await ideasService.deleteIdea(id)
+      setIdeas(prev => prev.filter(idea => idea.id !== id))
+      ToastAlert('Ideia removida.', 'success')
+    } catch {
+      ToastAlert('Erro ao excluir ideia.', 'error')
+    }
   }
 
   return (
@@ -65,22 +133,32 @@ export function IdeasPage() {
         </div>
 
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-          <button
-            type="button"
-            className="rounded-full border border-orange-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-500 shadow-sm transition hover:border-orange-300 hover:text-orange-600"
-          >
-            Favoritas
-          </button>
-          <IdeaDialog onSubmit={async () => {}} />
+          <IdeaDialog categories={categories} onSubmit={handleCreate} />
         </div>
       </header>
 
-      <IdeasGrid ideas={ideas} onEdit={handleEdit} onDelete={handleDelete} />
+      {loading ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-sm text-slate-500">
+          Carregando ideias...
+        </div>
+      ) : ideas.length === 0 ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-sm text-slate-500">
+          Nenhuma ideia cadastrada ainda.
+        </div>
+      ) : (
+        <IdeasGrid
+          ideas={ideas}
+          categoriesById={categoriesById}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
       {action === 'edit' && selectedIdea && (
         <IdeaDialog
           open
           initialData={selectedIdea}
-          onSubmit={async () => {}}
+          categories={categories}
+          onSubmit={handleUpdate}
           onOpenChange={open => !open && clearSelection()}
         />
       )}
@@ -88,7 +166,7 @@ export function IdeasPage() {
         idea={selectedIdea}
         open={action === 'delete'}
         onClose={clearSelection}
-        onConfirm={() => {}}
+        onConfirm={handleDelete}
       />
     </div>
   )

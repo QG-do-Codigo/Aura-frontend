@@ -1,16 +1,11 @@
 import { motion } from 'framer-motion'
-import type { LucideIcon } from 'lucide-react'
-import { Edit2, Star, Trash2 } from 'lucide-react'
+import { Edit2, Trash2 } from 'lucide-react'
+import { getIdeaCategoryMeta } from '../categoryMeta'
 
 interface IdeaCardProps {
   title: string
   content: string
-  date: string
-  color: string
-  category: string
-  tags: string[]
-  icon: LucideIcon
-  isFavorite?: boolean
+  categoryName?: string
   onEdit: () => void
   onDelete: () => void
 }
@@ -18,38 +13,33 @@ interface IdeaCardProps {
 export function IdeaCard({
   title,
   content,
-  date,
-  color,
-  category,
-  tags,
-  icon: Icon,
-  isFavorite = false,
+  categoryName,
   onEdit,
   onDelete,
 }: IdeaCardProps) {
+  const { Icon, iconClassName, badgeClassName } = getIdeaCategoryMeta(categoryName)
+
   return (
     <motion.div
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300 }}
-      style={{ backgroundColor: color }}
-      className="relative min-w-0 rounded-2xl p-6 shadow-sm overflow-hidden group"
+      className="relative min-w-0 rounded-2xl bg-amber-50/60 p-6 shadow-sm overflow-hidden group border border-amber-100"
     >
       <div className="mb-4 flex items-center gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/80 text-slate-700 shadow-sm">
-          <Icon size={18} />
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-white shadow-sm">
+          <Icon size={18} className={iconClassName} />
         </div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-          {category}
-        </p>
-        <button
-          type="button"
-          className={`ml-auto grid h-8 w-8 place-items-center rounded-full bg-white/70 transition ${
-            isFavorite ? 'text-amber-500' : 'text-slate-300'
-          }`}
-          aria-label="Favoritar ideia"
-        >
-          <Star size={14} className={isFavorite ? 'fill-amber-400' : ''} />
-        </button>
+        {categoryName ? (
+          <p
+            className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] shadow-sm ${badgeClassName}`}
+          >
+            {categoryName}
+          </p>
+        ) : (
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+            Sem categoria
+          </p>
+        )}
       </div>
 
       <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -77,21 +67,6 @@ export function IdeaCard({
       <p className="text-sm leading-relaxed text-slate-600 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
         {content}
       </p>
-
-      <div className="mt-5 flex flex-wrap gap-2">
-        {tags.map(tag => (
-          <span
-            key={tag}
-            className="rounded-full bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500"
-          >
-            #{tag}
-          </span>
-        ))}
-      </div>
-
-      <div className="mt-6 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-        <span>{date}</span>
-      </div>
     </motion.div>
   )
 }

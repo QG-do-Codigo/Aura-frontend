@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import {
   Bell,
   Lightbulb,
@@ -8,10 +9,10 @@ import {
   CheckSquare2,
   LineChart,
 } from 'lucide-react'
-import { ideasMock } from '../ideas/mocks/ideasMock'
 import { NOTES_MOCK } from '../notes/mocks/notesMock'
 import { shoppingMock } from '../shopping/mocks/shoppingMock'
-import { useTasks } from '../Tasks/hooks/useTasks'
+import { useTasks } from '../../services/tasks/tasksService'
+import { ideasService, type IdeaResponse } from '../../services/ideas/ideasService'
 
 const formatDate = (date: Date) => {
   const formatted = date.toLocaleDateString('pt-BR', {
@@ -28,7 +29,27 @@ export const Dashboard = () => {
   const completedTasks = tasks.filter(task => task.completed).length
   const totalTasks = tasks.length
 
-  const favoriteIdeas = ideasMock.filter(idea => idea.isFavorite).slice(0, 3)
+  const [ideas, setIdeas] = useState<IdeaResponse[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadIdeas() {
+      try {
+        const data = await ideasService.listIdeas()
+        if (!cancelled) setIdeas(data)
+      } catch {
+        if (!cancelled) setIdeas([])
+      }
+    }
+
+    loadIdeas()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const topIdeas = ideas.slice(0, 3)
   const topNotes = NOTES_MOCK.slice(0, 3)
   const topShopping = shoppingMock.slice(0, 3)
 
@@ -262,23 +283,22 @@ export const Dashboard = () => {
               Ideias
             </div>
             <span className="text-xs text-rose-400">
-              {favoriteIdeas.length}
+              {ideas.length}
             </span>
           </div>
           <div className="mt-4 flex items-end gap-2">
             <p className="text-3xl font-semibold text-slate-900">
-              {favoriteIdeas.length}
+              {ideas.length}
             </p>
-            <p className="text-sm text-rose-500">favoritas</p>
+            <p className="text-sm text-rose-500">ideias</p>
           </div>
           <div className="mt-4 space-y-2 text-xs text-slate-600">
-            {favoriteIdeas.map(idea => (
+            {topIdeas.map(idea => (
               <div
                 key={idea.id}
                 className="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm"
               >
                 <span>{idea.title}</span>
-                <span className="text-amber-500">★</span>
               </div>
             ))}
           </div>

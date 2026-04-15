@@ -1,13 +1,17 @@
-import type { LucideIcon } from 'lucide-react'
-
 export interface Idea {
   id: string
   title: string
   content: string
-  date: string
-  color: string
-  category: string
-  tags: string[]
-  icon: LucideIcon
-  isFavorite?: boolean
+  categoryId: string
+}
+
+export interface IdeaCategory {
+  id: string
+  name: string
+}
+
+export interface IdeaFormData {
+  title: string
+  content: string
+  categoryId: string
 }

@@ -1,4 +1,4 @@
-import { TasksPage } from '../pages/Tasks/TaskPage'
+import { TasksPage } from '../pages/Tasks'
 import { RootRedirect } from '../pages/auth/redirect'
 import { Dashboard } from '../pages/dashboard'
 import { DashboardLayout } from '../layouts/DashboardLayout'

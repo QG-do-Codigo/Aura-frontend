@@ -174,3 +174,25 @@
     line-height: 1.5;
   }
 }
+
+.custom-scrollbar {
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}

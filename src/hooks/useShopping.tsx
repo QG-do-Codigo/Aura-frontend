@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import axios from 'axios'
 import type {
   ShoppingCategory,
   ShoppingCreateInput,
@@ -10,6 +11,7 @@ import {
   type ShoppingCategoryResponse,
   type ShoppingResponse,
 } from '../services/shopping/shoppingService'
+import { ToastAlert } from '../utils/toastAlert'
 
 interface CategoryTemplate {
   id: string
@@ -146,6 +148,21 @@ function getCategoryIcon(category: ShoppingCategoryResponse, fallback: string) {
   }
 
   return fallback
+}
+
+function extractApiMessage(data: unknown): string | undefined {
+  if (!data || typeof data !== 'object') return undefined
+  const record = data as Record<string, unknown>
+  const message = record.message
+
+  if (typeof message === 'string') return message
+  if (message && typeof message === 'object') {
+    const nested = message as Record<string, unknown>
+    if (typeof nested.message === 'string') return nested.message
+  }
+
+  if (typeof record.error === 'string') return record.error
+  return undefined
 }
 
 function mapCategoryTemplate(
@@ -330,46 +347,57 @@ export function useShopping() {
       name: data.name.trim(),
       quantity: normalizeQuantity(data.quantity),
       purchased: Boolean(data.purchased),
-      categoryId: data.categoryId,
+      categoryId: data.categoryId.trim(),
     }
 
     if (!payload.name || !payload.categoryId) return
 
-    const response = await shoppingService.createItem(payload)
-    const createdItem = mapItem({
-      ...response.data,
-      name: response.data.name ?? payload.name,
-      quantity: response.data.quantity ?? payload.quantity,
-      purchased: response.data.purchased ?? payload.purchased,
-      categoryId: response.data.categoryId ?? payload.categoryId,
-    })
+    try {
+      const response = await shoppingService.createItem(payload)
+      const createdItem = mapItem({
+        ...response.data,
+        name: response.data.name ?? payload.name,
+        quantity: response.data.quantity ?? payload.quantity,
+        purchased: response.data.purchased ?? payload.purchased,
+        categoryId: response.data.categoryId ?? payload.categoryId,
+      })
 
-    setCategories(prev => {
-      const template = categoryTemplates.find(item => item.id === payload.categoryId)
-      const fallbackStyle =
-        fallbackStyles[prev.length % fallbackStyles.length] ?? fallbackStyles[0]
-      const categoryIndex = prev.findIndex(item => item.id === payload.categoryId)
-
-      if (categoryIndex >= 0) {
-        return prev.map(item =>
-          item.id === payload.categoryId
-            ? { ...item, items: [...item.items, createdItem] }
-            : item
+      setCategories(prev => {
+        const template = categoryTemplates.find(
+          item => item.id === payload.categoryId
         )
-      }
+        const fallbackStyle =
+          fallbackStyles[prev.length % fallbackStyles.length] ?? fallbackStyles[0]
+        const categoryIndex = prev.findIndex(item => item.id === payload.categoryId)
 
-      return [
-        ...prev,
-        {
-          id: payload.categoryId,
-          title: template?.title ?? toTitle(payload.categoryId),
-          icon: template?.icon ?? fallbackStyle.icon,
-          color: template?.color ?? fallbackStyle.color,
-          buttonColor: template?.buttonColor ?? fallbackStyle.buttonColor,
-          items: [createdItem],
-        },
-      ]
-    })
+        if (categoryIndex >= 0) {
+          return prev.map(item =>
+            item.id === payload.categoryId
+              ? { ...item, items: [...item.items, createdItem] }
+              : item
+          )
+        }
+
+        return [
+          ...prev,
+          {
+            id: payload.categoryId,
+            title: template?.title ?? toTitle(payload.categoryId),
+            icon: template?.icon ?? fallbackStyle.icon,
+            color: template?.color ?? fallbackStyle.color,
+            buttonColor: template?.buttonColor ?? fallbackStyle.buttonColor,
+            items: [createdItem],
+          },
+        ]
+      })
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = extractApiMessage(error.response?.data)
+        ToastAlert(message ?? 'Erro ao criar item de compras', 'error')
+      } else {
+        ToastAlert('Erro ao criar item de compras', 'error')
+      }
+    }
   }
 
   async function addItems(categoryId: string, items: ShoppingItemInput[]) {

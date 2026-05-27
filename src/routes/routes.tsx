@@ -1,20 +1,18 @@
-import { TasksPage } from "../pages/Tasks";
-
+import { TasksPage } from '../pages/Tasks'
 import { RootRedirect } from '../pages/auth/redirect'
 import { Dashboard } from '../pages/dashboard'
 import { DashboardLayout } from '../layouts/DashboardLayout'
-
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import SignIn from '../pages/auth/SignIn'
 import SignUp from '../pages/auth/SignUp'
 import { NotesPage } from '../pages/notes/components/NotesPage'
+import { IdeasPage } from '../pages/ideas'
 import { PrivateRoute } from './PrivateRoute'
 import { ToastContainer } from 'react-toastify'
 import { ShoppingListPage } from '../pages/shopping'
-import { FinancePage } from '../pages/finance'
-
-import { HealthPage } from '../pages/health'
 import { SleepPage } from '../pages/sleep'
+import { FinancePage } from '../pages/finance'
+import { HealthPage } from '../pages/health'
 
 function AppRoutes() {
   return (
@@ -34,11 +32,7 @@ function AppRoutes() {
             <Route path="shopping" element={<ShoppingListPage />} />
             <Route path="finance" element={<FinancePage />} />
             <Route path="health" element={<HealthPage />} />
-            {/* <Route path="finance" element={<FinancePage />} />
-            <Route path="sleep" element={<SleepPage />} />
-            {/* <Route path="health" element={<HealthPage />} />
-            <Route path="finance" element={<FinancePage />} />
-            <Route path="ideas" element={<IdeasPage />} /> */}
+            <Route path="ideas" element={<IdeasPage />} />
             <Route path="sleep" element={<SleepPage />} />
           </Route>
         </Route>

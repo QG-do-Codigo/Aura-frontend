@@ -7,6 +7,7 @@ import type {
 } from '../pages/sleep/types'
 import { sleepService } from '../services/sleep/sleepService'
 import { ToastAlert } from '../utils/toastAlert'
+import { extractBackendMessage } from '../utils/extractBackendMessage'
 
 type SleepGoalResponse = SleepGoal & { _id?: string }
 
@@ -92,7 +93,7 @@ export function useSleep() {
         setPrimaryGoalId(latest?.id ?? null)
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          const message = (error.response?.data as { message?: string })?.message
+          const message = extractBackendMessage(error.response?.data)
           ToastAlert(message ?? 'Erro ao carregar metas de sono', 'error')
         } else {
           ToastAlert('Erro ao carregar metas de sono', 'error')

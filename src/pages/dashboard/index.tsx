@@ -9,10 +9,48 @@ import {
   CheckSquare2,
   LineChart,
 } from 'lucide-react'
-import { NOTES_MOCK } from '../notes/mocks/notesMock'
-import { shoppingMock } from '../shopping/mocks/shoppingMock'
 import { useTasks } from '../../services/tasks/tasksService'
 import { ideasService, type IdeaResponse } from '../../services/ideas/ideasService'
+import { notesService, type NoteResponse } from '../../services/notes/notesService'
+import {
+  shoppingService,
+  type ShoppingCategoryResponse,
+  type ShoppingResponse,
+} from '../../services/shopping/shoppingService'
+import { sleepService } from '../../services/sleep/sleepService'
+import type { SleepGoal } from '../sleep/types'
+
+type NoteResponseList =
+  | NoteResponse[]
+  | { notes?: NoteResponse[] }
+  | { data?: NoteResponse[] }
+
+function unwrapNoteList(data: NoteResponseList): NoteResponse[] {
+  if (Array.isArray(data)) return data
+  if (data && typeof data === 'object') {
+    if ('notes' in data && Array.isArray(data.notes)) return data.notes
+    if ('data' in data && Array.isArray(data.data)) return data.data
+  }
+  return []
+}
+
+function normalizeId(value?: string) {
+  return (value ?? '').trim()
+}
+
+function normalizeShoppingCategory(category: ShoppingCategoryResponse) {
+  const id = normalizeId(category.id ?? category._id ?? category.categoryId)
+  const title = (category.title ?? category.name ?? category.category ?? '').trim()
+
+  return {
+    id,
+    title: title || 'Categoria',
+  }
+}
+
+function getShoppingItemCategoryId(item: ShoppingResponse) {
+  return normalizeId(item.categoryId ?? item.category ?? '')
+}
 
 const formatDate = (date: Date) => {
   const formatted = date.toLocaleDateString('pt-BR', {
@@ -30,6 +68,14 @@ export const Dashboard = () => {
   const totalTasks = tasks.length
 
   const [ideas, setIdeas] = useState<IdeaResponse[]>([])
+  const [notes, setNotes] = useState<Array<{ id: string; title: string }>>([])
+  const [notesCount, setNotesCount] = useState(0)
+  const [shoppingCategories, setShoppingCategories] = useState<
+    Array<{ id: string; title: string; itemsCount: number }>
+  >([])
+  const [shoppingCategoriesCount, setShoppingCategoriesCount] = useState(0)
+  const [shoppingItemsCount, setShoppingItemsCount] = useState(0)
+  const [sleepGoal, setSleepGoal] = useState<SleepGoal | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -43,15 +89,99 @@ export const Dashboard = () => {
       }
     }
 
-    loadIdeas()
+    async function loadNotes() {
+      try {
+        const response = await notesService.filterNotes('')
+        const list = unwrapNoteList(response.data)
+        if (cancelled) return
+
+        setNotesCount(list.length)
+        setNotes(
+          list
+            .map(note => ({
+              id: normalizeId(note.id ?? note._id),
+              title: (note.title ?? '').trim(),
+            }))
+            .filter(note => note.id && note.title)
+            .slice(0, 3)
+        )
+      } catch {
+        if (!cancelled) {
+          setNotesCount(0)
+          setNotes([])
+        }
+      }
+    }
+
+    async function loadShopping() {
+      try {
+        const [categoriesResponse, itemsResponse] = await Promise.all([
+          shoppingService.listCategories(),
+          shoppingService.listItems(),
+        ])
+
+        const categories = (categoriesResponse.data ?? [])
+          .map(normalizeShoppingCategory)
+          .filter(category => category.id)
+
+        const items = itemsResponse.data ?? []
+
+        const itemsByCategoryId = new Map<string, number>()
+        for (const item of items) {
+          const categoryId = getShoppingItemCategoryId(item)
+          if (!categoryId) continue
+          itemsByCategoryId.set(
+            categoryId,
+            (itemsByCategoryId.get(categoryId) ?? 0) + 1
+          )
+        }
+
+        const categoriesWithCounts = categories
+          .map(category => ({
+            ...category,
+            itemsCount: itemsByCategoryId.get(category.id) ?? 0,
+          }))
+          .sort((a, b) => b.itemsCount - a.itemsCount)
+
+        if (cancelled) return
+        setShoppingCategoriesCount(categories.length)
+        setShoppingItemsCount(items.length)
+        setShoppingCategories(categoriesWithCounts.slice(0, 3))
+      } catch {
+        if (!cancelled) {
+          setShoppingCategoriesCount(0)
+          setShoppingItemsCount(0)
+          setShoppingCategories([])
+        }
+      }
+    }
+
+    async function loadSleep() {
+      try {
+        const response = await sleepService.list()
+        const list = response.data ?? []
+        const latest =
+          [...list].sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )[0] ?? null
+
+        if (!cancelled) setSleepGoal(latest)
+      } catch {
+        if (!cancelled) setSleepGoal(null)
+      }
+    }
+
+    void loadIdeas()
+    void loadNotes()
+    void loadShopping()
+    void loadSleep()
     return () => {
       cancelled = true
     }
   }, [])
 
   const topIdeas = ideas.slice(0, 3)
-  const topNotes = NOTES_MOCK.slice(0, 3)
-  const topShopping = shoppingMock.slice(0, 3)
 
   return (
     <div className="space-y-8 pb-8">
@@ -150,27 +280,16 @@ export const Dashboard = () => {
           </div>
 
           <div className="mt-6">
-            <p className="text-xs text-indigo-200">Ontem à noite</p>
-            <p className="mt-1 text-3xl font-semibold">8.5h</p>
-            <p className="mt-1 text-[11px] text-indigo-200">
-              Média semanal: 7.8h
+            <p className="text-xs text-indigo-200">Meta</p>
+            <p className="mt-1 text-3xl font-semibold">
+              {sleepGoal ? `${sleepGoal.goalHours}h` : '—'}
             </p>
-          </div>
-
-          <div className="mt-6 space-y-3">
-            <div className="h-10 rounded-2xl bg-white/10">
-              <div className="h-full w-full rounded-2xl bg-gradient-to-r from-white/5 via-white/20 to-white/5" />
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-[10px] text-indigo-200">
-              {['S', 'T', 'Q', 'Q', 'S', 'S', 'D'].map(day => (
-                <div
-                  key={day}
-                  className="flex h-6 items-center justify-center rounded-lg bg-white/10"
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
+            <p className="mt-1 text-[11px] text-indigo-200">
+              {sleepGoal?.averageHours !== undefined &&
+              sleepGoal?.averageHours !== null
+                ? `Média: ${sleepGoal.averageHours}h`
+                : 'Sem média ainda'}
+            </p>
           </div>
         </Link>
 
@@ -254,15 +373,15 @@ export const Dashboard = () => {
               Notas
             </div>
             <span className="text-xs text-amber-400">
-              {topNotes.length}
+              {notesCount}
             </span>
           </div>
           <p className="mt-4 text-3xl font-semibold text-slate-900">
-            {topNotes.length}
+            {notesCount}
           </p>
           <p className="text-xs text-slate-500">anotações ativas</p>
           <div className="mt-4 space-y-2 text-xs text-slate-600">
-            {topNotes.map(note => (
+            {notes.map(note => (
               <div
                 key={note.id}
                 className="rounded-xl bg-white px-3 py-2 shadow-sm"
@@ -314,22 +433,22 @@ export const Dashboard = () => {
               Compras
             </div>
             <span className="text-xs text-emerald-500">
-              {topShopping.length}
+              {shoppingCategoriesCount || '—'}
             </span>
           </div>
           <p className="mt-4 text-3xl font-semibold text-slate-900">
-            {topShopping.reduce((sum, category) => sum + category.items.length, 0)}
+            {shoppingItemsCount || 0}
           </p>
           <p className="text-xs text-slate-500">itens na lista</p>
           <div className="mt-4 space-y-2 text-xs text-slate-600">
-            {topShopping.map(category => (
+            {shoppingCategories.map(category => (
               <div
                 key={category.id}
                 className="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm"
               >
                 <span>{category.title}</span>
                 <span className="text-emerald-500">
-                  {category.items.length} itens
+                  {category.itemsCount} itens
                 </span>
               </div>
             ))}

@@ -1,89 +1,58 @@
-import { Mail, Pencil, Save, User } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { UserInfo } from "../types";
-import { api } from "../../../services/api";
+import { Camera, Mail, Smile } from "lucide-react";
+import { useUser } from "../../../context/UserContext";
 
 export const ProfileCard = () => {
-  const [user, setUser] = useState<UserInfo | null>(null);
-
-  useEffect(() => {
-    const getUserData = async () => {
-      try {
-        // endpoint do usuário logado
-        const response = await api.get("users/me");
-
-        setUser(response.data);
-
-        console.log("Usuário logado:", response.data);
-      } catch (error) {
-        console.error("Erro ao buscar usuário:", error);
-      }
-    };
-
-    getUserData();
-  }, []);
-
+  const { user, loading } = useUser();
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-4xl rounded-[40px] bg-[#f8f8f8] shadow-lg border border-gray-200 p-10">
-        {/* Header */}
-        <div className="flex items-start gap-4 mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center">
-            <User className="text-indigo-500" size={26} />
+    <div className=" bg-gray-100 flex items-center justify-center p-6">
+      {/* fundo cinza */}
+      <div className="flex items-center justify-between bg-[rgba(244, 245, 247, 0)] w-full max-w-4xl rounded-[40px] shadow-lg border border-gray-200 p-10">
+        {" "}
+        {/* Left */}
+        <div className="flex items-center gap-6">
+          {/* Avatar */}
+          <div className="relative">
+            <img
+              src="https://i.pravatar.cc/200"
+              alt="Avatar"
+              className="w-32 h-32 rounded-[40px] object-cover border-4 border-white shadow-md"
+            />
+
+            <button className="absolute bottom-0 -right-2 flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-lg border border-gray-200">
+              <Camera size={18} className="text-slate-600" />
+            </button>
           </div>
 
+          {/* Info */}
           <div>
-            <h1 className="text-4xl font-extrabold text-slate-900">
-              Informações Pessoais
-            </h1>
-
-            <p className="text-slate-400 text-lg mt-1">
-              Edite e salve suas informações
+            <p className="text-sm font-bold uppercase tracking-wide text-slate-400">
+              MEMBRO PREMIUM
             </p>
-          </div>
-        </div>
 
-        <div className="space-y-8">
-          {/* Nome */}
-          <div className="flex items-center justify-between">
-            <div className="w-full max-w-md">
-              <label className="flex items-center gap-2 text-sm font-bold tracking-wider uppercase text-slate-400 mb-3">
-                <User size={14} />
-                Nome Completo
-              </label>
+            <h2 className="text-5xl font-extrabold text-slate-900">
+              {user?.name}
+            </h2>
 
-              <div className="bg-gray-100 rounded-3xl px-6 py-5 text-2xl font-semibold text-slate-800">
-                {user?.name}
-              </div>
+            <div className="mt-2 flex items-center gap-2 text-slate-500">
+              <Mail size={16} />
+              <span className="text-xl">{user?.email}</span>
             </div>
 
-            <button className="text-slate-300 hover:text-slate-500 transition">
-              <Pencil size={22} />
-            </button>
-          </div>
+            <div className="mt-4 flex items-center gap-3">
+              <span className="rounded-full bg-violet-100 px-4 py-2 text-sm font-bold text-violet-700">
+                PREMIUM
+              </span>
 
-          {/* Email */}
-          <div className="flex items-center justify-between">
-            <div className="w-full max-w-md">
-              <label className="flex items-center gap-2 text-sm font-bold tracking-wider uppercase text-slate-400 mb-3">
-                <Mail size={14} />
-                Endereço de E-mail
-              </label>
-
-              <div className="bg-gray-100 rounded-3xl px-6 py-5 text-2xl font-semibold text-slate-800">
-                {user?.email}
-              </div>
+              <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700">
+                MEMBRO DESDE JAN 2025
+              </span>
             </div>
-
-            <button className="text-slate-300 hover:text-slate-500 transition">
-              <Mail size={22} />
-            </button>
           </div>
         </div>
-
-        <button className="mt-12 w-full rounded-[28px] bg-gradient-to-r from-indigo-500 to-indigo-600 py-5 px-6 text-white text-2xl font-bold shadow-lg hover:scale-[1.01] transition flex items-center justify-start gap-3">
-          <Save size={22} />
-          Salvar Alterações
+        {/* Right Button */}
+        <button className="flex items-center gap-3 rounded-full bg-white px-8 py-5 shadow-md border border-gray-200 hover:scale-[1.02] transition">
+          <Smile size={20} className="text-slate-600" />
+          <span className="font-semibold text-slate-600">Trocar Avatar</span>
         </button>
       </div>
     </div>

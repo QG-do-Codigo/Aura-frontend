@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import type { UserInfo } from "./types";
+import { InfoCard } from "./components/InfoCard";
+import { SecurityCard } from "./components/SecurityCard";
+import { PreferenceCard } from "./components/PreferenceCard";
+import { SignOut } from "./components/SignOut";
 import { ProfileCard } from "./components/ProfileCard";
 
 export const UserPage = () => {
@@ -23,20 +27,11 @@ export const UserPage = () => {
     <div>
       <h1 className="text-2xl font-bold mb-4">Perfil dos Usuários</h1>
 
-      {/* {user.map((user, index) => (
-        <div key={index} className="mb-4 border-b pb-2">
-          <p className="text-lg mb-2">
-            <span className="font-semibold text-gray-700">Nome:</span>{" "}
-            {user.name}
-          </p>
-
-          <p className="text-lg">
-            <span className="font-semibold text-gray-700">Email:</span>{" "}
-            {user.email}
-          </p>
-        </div>
-      ))} */}
       <ProfileCard />
+      <InfoCard />
+      <SecurityCard />
+      <PreferenceCard />
+      <SignOut />
     </div>
   );
 };

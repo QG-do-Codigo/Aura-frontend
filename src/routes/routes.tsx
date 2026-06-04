@@ -16,32 +16,35 @@ import { FinancePage } from "../pages/finance";
 import { HealthPage } from "../pages/health";
 import { SleepPage } from "../pages/sleep";
 import { UserPage } from "../pages/user";
+import { UserProvider } from "../context/UserContext";
 
 function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<RootRedirect />} />
-        {/* rotas públicas */}
-        <Route path="/login" element={<SignIn />} />
-        <Route path="/register" element={<SignUp />} />
+      <UserProvider>
+        <Routes>
+          <Route path="/" element={<RootRedirect />} />
+          {/* rotas públicas */}
+          <Route path="/login" element={<SignIn />} />
+          <Route path="/register" element={<SignUp />} />
 
-        {/* rotas privadas – agrupadas em um único PrivateRoute pai */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="tasks" element={<TasksPage />} />
-            <Route path="notes" element={<NotesPage />} />
-            <Route path="shopping" element={<ShoppingListPage />} />
-            <Route path="finance" element={<FinancePage />} />
-            <Route path="health" element={<HealthPage />} />
-            <Route path="sleep" element={<SleepPage />} />
-            <Route path="profile" element={<UserPage />} />
+          {/* rotas privadas – agrupadas em um único PrivateRoute pai */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="tasks" element={<TasksPage />} />
+              <Route path="notes" element={<NotesPage />} />
+              <Route path="shopping" element={<ShoppingListPage />} />
+              <Route path="finance" element={<FinancePage />} />
+              <Route path="health" element={<HealthPage />} />
+              <Route path="sleep" element={<SleepPage />} />
+              <Route path="profile" element={<UserPage />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
+        </Routes>
 
-      <ToastContainer />
+        <ToastContainer />
+      </UserProvider>
     </BrowserRouter>
   );
 }

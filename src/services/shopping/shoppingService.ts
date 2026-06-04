@@ -1,4 +1,5 @@
 import api from '../api'
+import type { AxiosResponse } from 'axios'
 
 interface CreateShoppingPayload {
   name: string
@@ -47,6 +48,31 @@ type UpdateShoppingResponse = ShoppingResponse | UpdateShoppingWithItemsResponse
 
 const SHOPPING_ENDPOINT = '/shopping'
 
+type ListEnvelope<T> =
+  | T[]
+  | { data?: T[] }
+  | { items?: T[] }
+  | { categories?: T[] }
+  | { results?: T[] }
+
+function unwrapList<T>(value: ListEnvelope<T> | null | undefined): T[] {
+  if (Array.isArray(value)) return value
+  if (value && typeof value === 'object') {
+    const candidate =
+      'data' in value
+        ? value.data
+        : 'items' in value
+          ? value.items
+          : 'categories' in value
+            ? value.categories
+            : 'results' in value
+              ? value.results
+              : undefined
+    if (Array.isArray(candidate)) return candidate
+  }
+  return []
+}
+
 function hasAddedItems(
   data: UpdateShoppingResponse
 ): data is UpdateShoppingWithItemsResponse {
@@ -59,14 +85,23 @@ function hasAddedItems(
 }
 
 export const shoppingService = {
-  listCategories() {
-    return api.get<ShoppingCategoryResponse[]>(`${SHOPPING_ENDPOINT}/categories`)
+  async listCategories() {
+    const response = await api.get<ListEnvelope<ShoppingCategoryResponse>>(
+      `${SHOPPING_ENDPOINT}/categories`
+    )
+    const data = unwrapList(response.data)
+    return { ...response, data } as AxiosResponse<ShoppingCategoryResponse[]>
   },
 
-  listItems(categoryId?: string) {
-    return api.get<ShoppingResponse[]>(`${SHOPPING_ENDPOINT}/list`, {
+  async listItems(categoryId?: string) {
+    const response = await api.get<ListEnvelope<ShoppingResponse>>(
+      `${SHOPPING_ENDPOINT}/list`,
+      {
       params: categoryId ? { categoryId } : undefined,
-    })
+      }
+    )
+    const data = unwrapList(response.data)
+    return { ...response, data } as AxiosResponse<ShoppingResponse[]>
   },
 
   createItem(data: CreateShoppingPayload) {

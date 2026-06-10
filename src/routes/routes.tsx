@@ -2,7 +2,7 @@ import { TasksPage } from '../pages/Tasks'
 import { RootRedirect } from '../pages/auth/redirect'
 import { Dashboard } from '../pages/dashboard'
 import { DashboardLayout } from '../layouts/DashboardLayout'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import SignIn from '../pages/auth/SignIn'
 import SignUp from '../pages/auth/SignUp'
 import { NotesPage } from '../pages/notes/components/NotesPage'
@@ -13,10 +13,12 @@ import { ShoppingListPage } from '../pages/shopping'
 import { SleepPage } from '../pages/sleep'
 import { FinancePage } from '../pages/finance'
 import { HealthPage } from '../pages/health'
+import { AuthSessionManager } from '../components/auth/AuthSessionManager'
 
 function AppRoutes() {
   return (
-    <BrowserRouter>
+    <HashRouter>
+      <AuthSessionManager />
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         {/* rotas públicas */}
@@ -39,7 +41,7 @@ function AppRoutes() {
       </Routes>
 
       <ToastContainer />
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 

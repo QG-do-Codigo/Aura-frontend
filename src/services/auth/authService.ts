@@ -1,4 +1,9 @@
 import { api } from "../api";
+import {
+  getAuthToken,
+  logoutAndNotify,
+  setAuthToken,
+} from "./authSession";
 
 export interface SignDto {
   email: string;
@@ -21,7 +26,7 @@ export const authService = {
   async signIn(data: SignDto): Promise<SignInResponse> {
     const response = await api.post<SignInResponse>("/auth/signin", data);
 
-    localStorage.setItem("token", response.data.token);
+    setAuthToken(response.data.token);
 
     return response.data;
   },
@@ -29,16 +34,16 @@ export const authService = {
   async createUser(data: CreateUser): Promise<SignInResponse> {
     const response = await api.post<SignInResponse>("/users", data);
 
-    localStorage.setItem("token", response.data.token);
+    setAuthToken(response.data.token);
 
     return response.data;
   },
 
   async LogOut() {
-    localStorage.removeItem("token");
+    logoutAndNotify();
   },
 
   getToken() {
-    return localStorage.getItem("token");
+    return getAuthToken();
   },
 };

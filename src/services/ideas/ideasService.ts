@@ -6,10 +6,6 @@ export interface IdeaPayload {
   categoryId: string
 }
 
-type IdeaPayloadWire = IdeaPayload & {
-  category_id: string
-}
-
 export interface IdeaResponse {
   id: string
   _id?: string
@@ -71,14 +67,12 @@ export const ideasService = {
   },
 
   async createIdea(data: IdeaPayload) {
-    const payload: IdeaPayloadWire = { ...data, category_id: data.categoryId }
-    const response = await api.post<IdeaResponse>(IDEAS_ENDPOINT, payload)
+    const response = await api.post<IdeaResponse>(IDEAS_ENDPOINT, data)
     return normalizeIdeaId(response.data)
   },
 
   async updateIdea(id: string, data: IdeaPayload) {
-    const payload: IdeaPayloadWire = { ...data, category_id: data.categoryId }
-    const response = await api.patch<IdeaResponse>(`${IDEAS_ENDPOINT}/${id}`, payload)
+    const response = await api.patch<IdeaResponse>(`${IDEAS_ENDPOINT}/${id}`, data)
 
     try {
       const fresh = await ideasService.getIdeaById(id)

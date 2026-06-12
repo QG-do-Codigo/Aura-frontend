@@ -4,6 +4,7 @@ const SESSION_EXPIRED_NOTICE_KEY = 'auth:session-expired-notice'
 
 type JwtPayload = {
   exp?: number
+  [key: string]: unknown
 }
 
 function decodeBase64Url(value: string) {
@@ -21,6 +22,11 @@ function readJwtPayload(token: string): JwtPayload | null {
   } catch {
     return null
   }
+}
+
+export function getAuthTokenPayload(token = getAuthToken()) {
+  if (!token) return null
+  return readJwtPayload(token)
 }
 
 export function getAuthToken() {

@@ -20,6 +20,7 @@ export interface SignInResponse {
   email: string;
   password: string;
   token: string;
+  name?: string;
 }
 
 export const authService = {
@@ -27,6 +28,13 @@ export const authService = {
     const response = await api.post<SignInResponse>("/auth/signin", data);
 
     setAuthToken(response.data.token);
+    localStorage.setItem(
+      'auth:user',
+      JSON.stringify({
+        email: response.data.email,
+        name: response.data.name ?? response.data.email?.split('@')[0] ?? '',
+      })
+    );
 
     return response.data;
   },
@@ -35,6 +43,13 @@ export const authService = {
     const response = await api.post<SignInResponse>("/users", data);
 
     setAuthToken(response.data.token);
+    localStorage.setItem(
+      'auth:user',
+      JSON.stringify({
+        email: response.data.email,
+        name: response.data.name ?? data.name,
+      })
+    );
 
     return response.data;
   },

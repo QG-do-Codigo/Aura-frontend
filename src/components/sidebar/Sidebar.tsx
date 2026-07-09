@@ -21,7 +21,6 @@ export const Sidebar = () => {
 
   const handleLogout = () => {
     authService.LogOut()
-    navigate('/login')
   }
 
   return (

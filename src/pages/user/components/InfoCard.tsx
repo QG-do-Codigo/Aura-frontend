@@ -1,27 +1,8 @@
 import { Mail, Pencil, Save, User } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { UserInfo } from "../types";
-import { api } from "../../../services/api";
+import { useUser } from "../../../context/UserContext";
 
 export const InfoCard = () => {
-  const [user, setUser] = useState<UserInfo | null>(null);
-
-  useEffect(() => {
-    const getUserData = async () => {
-      try {
-        // endpoint do usuário logado
-        const response = await api.get("users/me");
-
-        setUser(response.data);
-
-        console.log("Usuário logado:", response.data);
-      } catch (error) {
-        console.error("Erro ao buscar usuário:", error);
-      }
-    };
-
-    getUserData();
-  }, []);
+  const { user, loading } = useUser();
 
   return (
     <div className=" bg-gray-100 flex items-center justify-center p-6">
@@ -53,7 +34,7 @@ export const InfoCard = () => {
               </label>
 
               <div className="bg-gray-100 rounded-3xl px-6 py-5 text-2xl font-semibold text-slate-800">
-                {user?.name}
+                {loading ? 'Carregando...' : user?.name || 'Nome não disponível'}
               </div>
             </div>
 
@@ -71,7 +52,7 @@ export const InfoCard = () => {
               </label>
 
               <div className="bg-gray-100 rounded-3xl px-6 py-5 text-2xl font-semibold text-slate-800">
-                {user?.email}
+                {loading ? 'Carregando...' : user?.email || 'E-mail não disponível'}
               </div>
             </div>
 

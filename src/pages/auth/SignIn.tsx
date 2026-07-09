@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Input } from '../../components/UI/input'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { AuthLayout } from '../../components/auth/AuthLayout'
 import auraLogo from '../../assets/logoaura.png'
 import { Button } from '../../components/UI/button'
@@ -15,6 +15,7 @@ function SignIn() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   let navigate = useNavigate()
 
@@ -48,6 +49,7 @@ function SignIn() {
 
   async function handleLogin(e: any) {
     e.preventDefault()
+    setIsSubmitting(true)
 
     try {
       const data = await authService.signIn({ email, password })
@@ -55,7 +57,7 @@ function SignIn() {
       if (data) {
         ToastAlert('Logado com sucesso!', 'success')
         // redirecionar se quiser
-        navigate('/dashboard')
+        navigate('/dashboard', { replace: true })
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -73,6 +75,8 @@ function SignIn() {
       }
 
       ToastAlert('Erro ao realizar o login', 'error')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -151,10 +155,12 @@ function SignIn() {
             </div>
 
             <Button
-              disabled={!isFormValid}
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
               className="w-full h-16 text-xl font-black shadow-[0_20px_40px_-12px_rgba(184,198,219,0.5)] bg-primary text-white hover:bg-primary-hover rounded-3xl transition-all hover:-translate-y-1"
             >
-              Entrar na Aura
+              {isSubmitting && <Loader2 className="size-5 animate-spin" />}
+              {isSubmitting ? 'Entrando...' : 'Entrar na Aura'}
             </Button>
           </form>
         </div>

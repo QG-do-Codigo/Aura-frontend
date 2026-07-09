@@ -264,7 +264,9 @@ export function HealthPage() {
     id?: string
   ) {
     if (id) {
-      await updateHealth(id, data)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { type, ...restOfData } = data
+      await updateHealth(id, restOfData)
       await fetchWeek()
       return
     }

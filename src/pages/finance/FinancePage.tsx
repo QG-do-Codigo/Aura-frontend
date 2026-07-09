@@ -251,6 +251,7 @@ const PIE_COLORS = [
 
 export function FinancePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [chartTransactions, setChartTransactions] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<FinanceCategory[]>([])
   const [summary, setSummary] = useState<FinanceSummary>({
     total_income: 0,
@@ -273,7 +274,7 @@ export function FinancePage() {
   const [visibleCount, setVisibleCount] = useState(8)
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false)
 
-  const now = useMemo(() => new Date(), [])
+  const [now, setNow] = useState(() => new Date())
   const appliedFiltersCount = activeFiltersCount(filters)
   const hasAppliedFilters = appliedFiltersCount > 0
   const transactionQuery = useMemo(
@@ -328,29 +329,30 @@ export function FinancePage() {
       const monthLabel = monthDate
         .toLocaleDateString('pt-BR', { month: 'short' })
         .replace('.', '')
-      const income = filteredTransactions
+      const income = chartTransactions
         .filter(
           item =>
             item.type === 'income' && item.transaction_date.startsWith(key)
         )
         .reduce((acc, item) => acc + item.amount, 0)
-      const expense = filteredTransactions
+      const expense = chartTransactions
         .filter(
           item =>
             item.type === 'expense' && item.transaction_date.startsWith(key)
         )
         .reduce((acc, item) => acc + item.amount, 0)
+
       return {
         month: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
         income: Math.round(income * 100) / 100,
         expense: Math.round(expense * 100) / 100,
       }
     })
-  }, [filteredTransactions, now])
+  }, [chartTransactions, now])
 
   const expenseByCategory = useMemo(() => {
     const map = new Map<string, { name: string; icon: string; value: number }>()
-    for (const transaction of filteredTransactions) {
+    for (const transaction of chartTransactions) {
       if (transaction.type !== 'expense') continue
       const key = `${transaction.category_icon} ${transaction.category}`
       const current = map.get(key)
@@ -361,7 +363,7 @@ export function FinancePage() {
       })
     }
     return [...map.values()].sort((a, b) => b.value - a.value)
-  }, [filteredTransactions])
+  }, [chartTransactions])
 
   const topExpenseCategories = useMemo(
     () => expenseByCategory.slice(0, 3),
@@ -393,14 +395,23 @@ export function FinancePage() {
     setVisibleCount(8)
     async function load() {
       try {
-        const [list, fetchedCategories] = await Promise.all([
+        const [list, fetchedCategories, ...chartLists] = await Promise.all([
           financeService.listTransactions(transactionQuery),
           financeService.listCategories(),
+          ...Array.from({ length: 6 }, (_, index) => {
+            const date = new Date(now.getFullYear(), now.getMonth(), 1)
+            date.setMonth(now.getMonth() - index)
+            return financeService.listTransactions({
+              month: date.getMonth() + 1,
+              year: date.getFullYear(),
+            })
+          }),
         ])
         if (cancelled) return
         setTransactions(list)
         setSummary(summarizeTransactions(list))
         setCategories(fetchedCategories)
+        setChartTransactions(chartLists.flat())
       } catch (error) {
         if (axios.isAxiosError(error)) {
           const message = extractBackendMessage(error.response?.data)
@@ -419,7 +430,7 @@ export function FinancePage() {
     return () => {
       cancelled = true
     }
-  }, [transactionQuery])
+  }, [transactionQuery, now])
 
   useEffect(() => {
     if (!isAddModalOpen) return
@@ -505,6 +516,7 @@ export function FinancePage() {
 
   async function reloadCurrentTransactions() {
     const list = await financeService.listTransactions(transactionQuery)
+    setNow(new Date())
     setTransactions(list)
     setSummary(summarizeTransactions(list))
   }
@@ -539,8 +551,7 @@ export function FinancePage() {
         amount: parsedValue,
         type: formData.type,
         category_id: chosenCategory.id,
-        transaction_date:
-          editingTransaction?.transaction_date ?? formatYYYYMMDD(new Date()),
+        transaction_date: formData.transaction_date,
       }
 
       if (editingTransaction) {
@@ -929,7 +940,8 @@ export function FinancePage() {
                 onClick={openCreateModal}
                 className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-4 py-3 text-xs font-semibold text-white shadow-sm shadow-emerald-500/20 transition hover:brightness-95"
               >
-                <Plus className="h-4 w-4" />+ Nova
+                <Plus className="h-4 w-4" />
+                Nova
               </button>
             </div>
           </div>

@@ -6,7 +6,10 @@ import type {
   Transaction,
   TransactionType,
 } from '../../pages/finance/types'
-import { getFinanceCategoryById, getFinanceCategoryByName } from './financeCategories'
+import {
+  getFinanceCategoryById,
+  getFinanceCategoryByName,
+} from './financeCategories'
 
 export type CreateTransactionPayload = {
   name: string
@@ -17,6 +20,16 @@ export type CreateTransactionPayload = {
 }
 
 export type UpdateTransactionPayload = Partial<CreateTransactionPayload>
+
+export type ListTransactionsFilters = {
+  type?: TransactionType
+  date?: string
+  month?: number
+  year?: number
+  category_id?: number
+  page?: number
+  period?: FinancePeriod
+}
 
 const FINANCE_ENDPOINT = '/finance'
 
@@ -64,7 +77,9 @@ function coerceTransaction(input: unknown): Transaction | null {
         : null
 
   const categoryIdFromObject =
-    rawCategory && typeof rawCategory !== 'string' ? parseCategoryId(rawCategory.id) : null
+    rawCategory && typeof rawCategory !== 'string'
+      ? parseCategoryId(rawCategory.id)
+      : null
 
   const categoryFromObject =
     rawCategory && typeof rawCategory !== 'string'
@@ -86,7 +101,8 @@ function coerceTransaction(input: unknown): Transaction | null {
             : ''
       : ''
 
-  const categoryNameRaw = typeof record.category === 'string' ? record.category : categoryFromObject
+  const categoryNameRaw =
+    typeof record.category === 'string' ? record.category : categoryFromObject
   const categoryIconRaw =
     typeof record.category_icon === 'string'
       ? record.category_icon
@@ -101,9 +117,9 @@ function coerceTransaction(input: unknown): Transaction | null {
       ? record.transaction_date
       : typeof record.transactionDate === 'string'
         ? record.transactionDate
-      : typeof record.date === 'string'
-        ? record.date
-        : ''
+        : typeof record.date === 'string'
+          ? record.date
+          : ''
 
   const amount = Math.abs(parseNumber(record.amount))
   const finalCategoryId = categoryId ?? categoryIdFromObject
@@ -139,45 +155,100 @@ function coerceFinanceCategory(input: unknown): FinanceCategory | null {
   return { id, name, icon, type }
 }
 
+function isPositiveInteger(value: unknown) {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
+}
+
+function buildTransactionParams(filters: ListTransactionsFilters) {
+  const params: Record<string, string | number> = {}
+
+  if (filters.type) params.type = filters.type
+  if (filters.category_id && isPositiveInteger(filters.category_id)) {
+    params.category_id = filters.category_id
+  }
+  if (filters.page && isPositiveInteger(filters.page))
+    params.page = filters.page
+
+  const hasExactDate = Boolean(filters.date?.trim())
+  if (hasExactDate && filters.date) {
+    params.date = filters.date
+  } else {
+    if (
+      filters.month &&
+      Number.isInteger(filters.month) &&
+      filters.month >= 1 &&
+      filters.month <= 12
+    ) {
+      params.month = filters.month
+    }
+    if (filters.year && isPositiveInteger(filters.year))
+      params.year = filters.year
+  }
+
+  const hasSpecificDateFilter = Boolean(
+    params.date || params.month || params.year
+  )
+  if (!hasSpecificDateFilter && filters.period) params.period = filters.period
+
+  return params
+}
+
 export const financeService = {
   async listCategories() {
     const response = await api.get<unknown[]>(`${FINANCE_ENDPOINT}/categories`)
     if (!Array.isArray(response.data)) return []
-    return response.data.map(coerceFinanceCategory).filter(Boolean) as FinanceCategory[]
+    return response.data
+      .map(coerceFinanceCategory)
+      .filter(Boolean) as FinanceCategory[]
   },
 
-  async listTransactions(period: FinancePeriod) {
-    const response = await api.get<unknown>(`${FINANCE_ENDPOINT}/transactions`, {
-      params: { period },
-    })
+  async listTransactions(
+    filters: FinancePeriod | ListTransactionsFilters = 'mensal'
+  ) {
+    const normalizedFilters =
+      typeof filters === 'string' ? { period: filters } : filters
+    const response = await api.get<unknown>(
+      `${FINANCE_ENDPOINT}/transactions`,
+      {
+        params: buildTransactionParams(normalizedFilters),
+      }
+    )
 
     const body = response.data
-    const items =
-      Array.isArray(body)
-        ? body
-        : body && typeof body === 'object' && Array.isArray((body as any).data)
-          ? ((body as any).data as unknown[])
-          : []
+    const items = Array.isArray(body)
+      ? body
+      : body && typeof body === 'object' && Array.isArray((body as any).data)
+        ? ((body as any).data as unknown[])
+        : []
 
     return items.map(coerceTransaction).filter(Boolean) as Transaction[]
   },
 
   async getSummary(period: FinancePeriod) {
-    const response = await api.get<FinanceSummary>(`${FINANCE_ENDPOINT}/summary`, {
-      params: { period },
-    })
+    const response = await api.get<FinanceSummary>(
+      `${FINANCE_ENDPOINT}/summary`,
+      {
+        params: { period },
+      }
+    )
     return response.data
   },
 
   async createTransaction(payload: CreateTransactionPayload) {
-    const response = await api.post<unknown>(`${FINANCE_ENDPOINT}/transactions`, payload)
+    const response = await api.post<unknown>(
+      `${FINANCE_ENDPOINT}/transactions`,
+      payload
+    )
     const mapped = coerceTransaction(response.data)
     if (!mapped) throw new Error('Resposta inválida ao criar transação.')
     return mapped
   },
 
   async updateTransaction(id: string, payload: UpdateTransactionPayload) {
-    const response = await api.put<unknown>(`${FINANCE_ENDPOINT}/transactions/${id}`, payload)
+    const response = await api.put<unknown>(
+      `${FINANCE_ENDPOINT}/transactions/${id}`,
+      payload
+    )
     const mapped = coerceTransaction(response.data)
     if (!mapped) throw new Error('Resposta inválida ao atualizar transação.')
     return mapped

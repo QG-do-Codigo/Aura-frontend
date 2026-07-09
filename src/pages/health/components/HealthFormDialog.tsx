@@ -43,6 +43,17 @@ function toInputDate(value?: string) {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
+function splitInputDate(value?: string) {
+  const normalized = toInputDate(value)
+  if (!normalized) return { date: '', time: '' }
+
+  const [date, time] = normalized.split('T')
+  return {
+    date: date ?? '',
+    time: time ?? '',
+  }
+}
+
 export function HealthFormDialog({
   open,
   onOpenChange,
@@ -54,7 +65,8 @@ export function HealthFormDialog({
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [type, setType] = useState<HealthType>('MEDICINE')
-  const [time, setTime] = useState('')
+  const [scheduleDate, setScheduleDate] = useState('')
+  const [scheduleTime, setScheduleTime] = useState('')
   const [repeatDaily, setRepeatDaily] = useState(true)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -65,25 +77,37 @@ export function HealthFormDialog({
     setTitle(initialData?.title ?? '')
     setDescription(initialData?.description ?? '')
     setType(initialData?.type ?? defaultType ?? 'MEDICINE')
-    setTime(toInputDate(initialData?.time) || '')
+    const schedule = splitInputDate(initialData?.time)
+    setScheduleDate(schedule.date)
+    setScheduleTime(schedule.time)
     setRepeatDaily(initialData?.repeatDaily ?? true)
     setSubmitError(null)
   }, [open, initialData, defaultType])
 
   const isValid = useMemo(
-    () => title.trim().length > 0 && time.length > 0,
-    [title, time]
+    () =>
+      title.trim().length > 0 &&
+      scheduleDate.length > 0 &&
+      scheduleTime.length > 0,
+    [scheduleDate, scheduleTime, title]
   )
 
   async function handleSubmit() {
     if (!isValid) return
+
+    const combinedDate = new Date(`${scheduleDate}T${scheduleTime}:00`)
+    if (Number.isNaN(combinedDate.getTime())) {
+      setSubmitError('Informe uma data e horário válidos.')
+      return
+    }
+
     try {
       await onSubmit(
         {
           title: title.trim(),
           description: description.trim(),
           type,
-          time: new Date(time).toISOString(),
+          time: combinedDate.toISOString(),
           repeatDaily,
         },
         initialData?.id
@@ -120,7 +144,7 @@ export function HealthFormDialog({
               id="health-title"
               value={title}
               onChange={event => setTitle(event.target.value)}
-              placeholder="Ex: Vitamina D"
+              placeholder="Ex: Corrida 30 min"
               className="rounded-[10px] border-slate-200 bg-slate-50/70 px-4"
             />
           </div>
@@ -164,14 +188,33 @@ export function HealthFormDialog({
           )}
 
           <div className="grid gap-2">
-            <Label htmlFor="health-time">Horário</Label>
-            <Input
-              id="health-time"
-              type="datetime-local"
-              value={time}
-              onChange={event => setTime(event.target.value)}
-              className="rounded-[10px] border-slate-200 bg-slate-50/70 px-4"
-            />
+            <Label>Horário</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="health-date" className="text-xs text-slate-500">
+                  Data
+                </Label>
+                <Input
+                  id="health-date"
+                  type="date"
+                  value={scheduleDate}
+                  onChange={event => setScheduleDate(event.target.value)}
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50/70 px-4 text-slate-700"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="health-time" className="text-xs text-slate-500">
+                  Hora
+                </Label>
+                <Input
+                  id="health-time"
+                  type="time"
+                  value={scheduleTime}
+                  onChange={event => setScheduleTime(event.target.value)}
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50/70 px-4 text-slate-700"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-between rounded-[12px] border border-slate-200 bg-slate-50/70 px-4 py-3">

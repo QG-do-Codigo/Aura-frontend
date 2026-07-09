@@ -8,6 +8,19 @@ import { ideasService } from '../../../services/ideas/ideasService'
 import type { Idea, IdeaCategory, IdeaFormData } from '../types'
 import { ToastAlert } from '../../../utils/toastAlert'
 
+const fallbackIdeaCategories: IdeaCategory[] = [
+  { id: 'negocios', name: 'Negócios' },
+  { id: 'pessoal', name: 'Pessoal' },
+  { id: 'casa', name: 'Casa' },
+  { id: 'aprendizado', name: 'Aprendizado' },
+  { id: 'viagem', name: 'Viagem' },
+  { id: 'saude', name: 'Saúde' },
+  { id: 'arte', name: 'Arte' },
+  { id: 'foto', name: 'Foto' },
+  { id: 'meta', name: 'Meta' },
+  { id: 'inspiracao', name: 'Inspiração' },
+]
+
 export function IdeasPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [action, setAction] = useState<'edit' | 'delete' | null>(null)
@@ -26,16 +39,34 @@ export function IdeasPage() {
     async function load() {
       setLoading(true)
       try {
-        const [categoriesData, ideasData] = await Promise.all([
+        const [categoriesResult, ideasResult] = await Promise.allSettled([
           ideasService.listCategories(),
           ideasService.listIdeas(),
         ])
 
         if (cancelled) return
-        setCategories(categoriesData)
-        setIdeas(ideasData)
+
+        const categoriesData =
+          categoriesResult.status === 'fulfilled'
+            ? categoriesResult.value.filter(
+                category =>
+                  Boolean(category.id?.trim()) && Boolean(category.name?.trim())
+              )
+            : []
+
+        setCategories(
+          categoriesData.length ? categoriesData : fallbackIdeaCategories
+        )
+
+        setIdeas(
+          ideasResult.status === 'fulfilled' ? ideasResult.value : []
+        )
       } catch {
-        if (!cancelled) ToastAlert('Erro ao carregar ideias.', 'error')
+        if (!cancelled) {
+          setCategories(fallbackIdeaCategories)
+          setIdeas([])
+          ToastAlert('Erro ao carregar ideias.', 'error')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
